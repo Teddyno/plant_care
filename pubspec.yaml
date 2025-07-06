@@ -1,0 +1,34 @@
+name: plantcare
+description: "App Flutter per la gestione e il monitoraggio della propria collezione di piante."
+
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  image_picker: ^1.0.7
+  fl_chart: ^0.66.0
+  flutter_launcher_icons: ^0.14.0
+  # SQLite 
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  # SQLite FFI desktop 
+  sqflite_common_ffi: ^2.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.0
+
+flutter:
+
+  uses-material-design: true
+
+  assets:
+    - assets/icon.png
