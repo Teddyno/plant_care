@@ -1,4 +1,3 @@
-import 'package:sqflite/sqflite.dart';
 import '../../services/db/DatabaseHelper.dart';
 import '../AttivitaCuraModel.dart';
 

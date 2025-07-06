@@ -22,8 +22,6 @@ import 'screens/main/main_view.dart';
 import 'themes/themes.dart';
 import 'services/db/DatabaseHelper.dart';
 
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-
 /// Funzione principale dell'applicazione PlantCare.
 /// 
 /// Questa funzione viene chiamata automaticamente quando l'app viene lanciata
