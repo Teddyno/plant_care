@@ -150,9 +150,7 @@ class PianteDashboardViewState extends State<PianteDashboardView> {
         return Icons.content_cut;
       case TipoAttivita.rinvaso:
         return Icons.grass;
-      default:
-        return Icons.eco;
-    }
+      }
   }
 
   /// Restituisce il colore appropriato per il tipo di attività.
@@ -165,9 +163,7 @@ class PianteDashboardViewState extends State<PianteDashboardView> {
         return Colors.green;
       case TipoAttivita.rinvaso:
         return Colors.brown;
-      default:
-        return Colors.grey;
-    }
+      }
   }
 
   /// Restituisce l'icona e il colore appropriati per lo stato della pianta.

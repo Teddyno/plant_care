@@ -117,6 +117,7 @@ class _AnalisiViewState extends State<AnalisiView> {
   }
 
   /// Calcola lo stato generale della collezione
+  /*
   Map<String, dynamic> get _statoCollezione {
     final pianteTotali = _piante.length;
     final attivitaCompletate = _tutteLeAttivita.length;
@@ -147,7 +148,7 @@ class _AnalisiViewState extends State<AnalisiView> {
       'percentuale': percentualeAttivita,
     };
   }
-
+*/
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -161,7 +162,7 @@ class _AnalisiViewState extends State<AnalisiView> {
     final pianteTotali = _piante.length;
     final distribuzioneCategorie = _distribuzioneCategorie;
     final attivitaMensili = _attivitaMensili;
-    final statoCollezione = _statoCollezione;
+    //final statoCollezione = _statoCollezione;
 
     return Scaffold(
       body: RefreshIndicator(

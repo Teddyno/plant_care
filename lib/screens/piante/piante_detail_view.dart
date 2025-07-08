@@ -76,56 +76,6 @@ class _PianteDetailViewState extends State<PianteDetailView> {
     }
   }
 
-  /// Restituisce l'icona, il colore e il colore di sfondo appropriati per lo stato della pianta
-  Map<String, dynamic> _getStatoInfo(String stato) {
-    IconData icon;
-    Color color;
-    Color backgroundColor;
-    
-    switch (stato.toLowerCase()) {
-      case 'sana':
-        icon = Icons.check_circle;
-        color = Colors.green;
-        backgroundColor = Colors.green.withOpacity(0.1);
-        break;
-      case 'in crescita':
-        icon = Icons.trending_up;
-        color = Colors.blue;
-        backgroundColor = Colors.blue.withOpacity(0.1);
-        break;
-      case 'malata':
-        icon = Icons.sick;
-        color = Colors.red;
-        backgroundColor = Colors.red.withOpacity(0.1);
-        break;
-      case 'in riposo':
-        icon = Icons.bedtime;
-        color = Colors.purple;
-        backgroundColor = Colors.purple.withOpacity(0.1);
-        break;
-      case 'necessita cure':
-        icon = Icons.warning;
-        color = Colors.orange;
-        backgroundColor = Colors.orange.withOpacity(0.1);
-        break;
-      case 'in fioritura':
-        icon = Icons.local_florist;
-        color = Colors.pink;
-        backgroundColor = Colors.pink.withOpacity(0.1);
-        break;
-      default:
-        icon = Icons.help;
-        color = Colors.grey;
-        backgroundColor = Colors.grey.withOpacity(0.1);
-    }
-    
-    return {
-      'icon': icon,
-      'color': color,
-      'backgroundColor': backgroundColor,
-    };
-  }
-
   /// Formatta una data in formato leggibile
   String _formattaData(DateTime data) {
     return '${data.day}/${data.month}/${data.year}';
