@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:intl/intl.dart';
 
-// Assicurati che i percorsi di importazione per i tuoi modelli e repository siano corretti
 import '../models/PiantaModel.dart';
 import '../models/SpecieModel.dart';
 import '../models/CategoriaModel.dart';
@@ -28,13 +27,17 @@ class PiantaForm extends StatefulWidget {
 class _PiantaFormState extends State<PiantaForm> {
   final _formKey = GlobalKey<FormState>();
 
+  // Controller
   final _nomeController = TextEditingController();
   final _frequenzaInnaffiaturaController = TextEditingController();
   final _frequenzaPotaturaController = TextEditingController();
   final _frequenzaRinvasoController = TextEditingController();
   final _noteController = TextEditingController();
   final _dataAcquistoController = TextEditingController();
+  final _nuovaCategoriaController = TextEditingController();
+  final _nuovaSpecieController = TextEditingController();
 
+  // Variabili di stato
   DateTime? _dataAcquisto;
   File? _foto;
   Uint8List? _fotoEsistente;
@@ -45,7 +48,11 @@ class _PiantaFormState extends State<PiantaForm> {
   Specie? _specieSelezionata;
   String _statoSelezionato = 'Sana';
 
-  // CORREZIONE: Rimosso _pianteRepository perché non usato qui.
+  // Flag per la UI
+  bool _creandoNuovaCategoria = false;
+  bool _creandoNuovaSpecie = false;
+
+  // Repository
   final SpecieRepository _specieRepository = SpecieRepository.instance;
   final CategorieRepository _categorieRepository = CategorieRepository.instance;
 
@@ -65,19 +72,18 @@ class _PiantaFormState extends State<PiantaForm> {
 
   @override
   void dispose() {
-    // ... (dispose di tutti i controller come prima)
     _nomeController.dispose();
     _frequenzaInnaffiaturaController.dispose();
     _frequenzaPotaturaController.dispose();
     _frequenzaRinvasoController.dispose();
     _noteController.dispose();
     _dataAcquistoController.dispose();
+    _nuovaCategoriaController.dispose();
+    _nuovaSpecieController.dispose();
     super.dispose();
   }
 
-  /// CORREZIONE: Logica aggiornata per caricare i dati basandosi sul modello corretto.
   Future<void> _caricaDatiIniziali(Pianta pianta) async {
-    // Popola i campi di testo e le variabili di stato
     _nomeController.text = pianta.nome;
     _frequenzaInnaffiaturaController.text = pianta.frequenzaInnaffiatura.toString();
     _frequenzaPotaturaController.text = pianta.frequenzaPotatura.toString();
@@ -88,13 +94,9 @@ class _PiantaFormState extends State<PiantaForm> {
     _statoSelezionato = pianta.stato;
     _fotoEsistente = pianta.foto;
 
-    // Carica tutti i dati necessari per i dropdown
     await _caricaTuttiIDatiDropDown();
 
-    // Trova la specie corrente della pianta
     _specieSelezionata = _specie.firstWhere((s) => s.id == pianta.idSpecie, orElse: () => _specie.first);
-
-    // Da quella specie, trova l'id della categoria e imposta la categoria selezionata
     final idCategoriaCorrente = _specieSelezionata!.idCategoria;
     _categoriaSelezionata = _categorie.firstWhere((c) => c.id == idCategoriaCorrente, orElse: () => _categorie.first);
 
@@ -104,10 +106,9 @@ class _PiantaFormState extends State<PiantaForm> {
   }
 
   Future<void> _caricaTuttiIDatiDropDown() async {
-    // Carica in parallelo per efficienza
     final results = await Future.wait([
       _categorieRepository.getTutteLeCategorie(),
-      _specieRepository.getTutteLeSpecie(), // Assumendo che tu abbia un metodo per prenderle tutte
+      _specieRepository.getTutteLeSpecie(),
     ]);
     if (mounted) {
       setState(() {
@@ -118,23 +119,80 @@ class _PiantaFormState extends State<PiantaForm> {
   }
 
   Future<void> _caricaCategorie() async {
-    // ... (metodo invariato)
     _categorie = await _categorieRepository.getTutteLeCategorie();
-    if(mounted) setState(() {});
+    if (mounted) setState(() {});
   }
 
   Future<void> _caricaSpecie(Categoria categoria) async {
-    // ... (metodo invariato)
     _specie = await _specieRepository.getSpecieByCategoria(categoria.id!);
-    if(mounted) setState(() {});
+    if (mounted) setState(() {});
   }
 
   Future<Uint8List?> _convertiImmagineInBytes(File file) async {
-    // ... (metodo invariato)
-    return await file.readAsBytes();
+    try {
+      return await file.readAsBytes();
+    } catch (e) {
+      return null;
+    }
   }
 
-  /// CORREZIONE: Rimosso idCategoria dalla creazione dell'oggetto Pianta.
+  Future<void> _creaNuovaCategoria() async {
+    final nomeCategoria = _nuovaCategoriaController.text.trim();
+    if (nomeCategoria.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inserisci un nome per la categoria')));
+      return;
+    }
+
+    try {
+      final nuovaCategoria = Categoria(nome: nomeCategoria);
+      await _categorieRepository.aggiungiCategoria(nuovaCategoria);
+      await _caricaCategorie();
+
+      final categoriaCreata = _categorie.firstWhere((c) => c.nome == nomeCategoria);
+      setState(() {
+        _categoriaSelezionata = categoriaCreata;
+        _creandoNuovaCategoria = false;
+        _nuovaCategoriaController.clear();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Categoria "$nomeCategoria" creata!'), backgroundColor: Colors.green));
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Errore: $e'), backgroundColor: Colors.red));
+    }
+  }
+
+  Future<void> _creaNuovaSpecie() async {
+    if (_categoriaSelezionata == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Seleziona prima una categoria')));
+      return;
+    }
+
+    final nomeSpecie = _nuovaSpecieController.text.trim();
+    if (nomeSpecie.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inserisci un nome per la specie')));
+      return;
+    }
+
+    try {
+      final nuovaSpecie = Specie(nome: nomeSpecie, idCategoria: _categoriaSelezionata!.id!);
+      await _specieRepository.aggiungiSpecie(nuovaSpecie);
+      await _caricaSpecie(_categoriaSelezionata!);
+
+      final specieCreata = _specie.firstWhere((s) => s.nome == nomeSpecie);
+      setState(() {
+        _specieSelezionata = specieCreata;
+        _creandoNuovaSpecie = false;
+        _nuovaSpecieController.clear();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Specie "$nomeSpecie" creata!'), backgroundColor: Colors.green));
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Errore: $e'), backgroundColor: Colors.red));
+    }
+  }
+
   Future<void> _salva() async {
     if (_formKey.currentState?.validate() ?? false) {
       FocusScope.of(context).unfocus();
@@ -157,7 +215,6 @@ class _PiantaFormState extends State<PiantaForm> {
         note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
         stato: _statoSelezionato,
         idSpecie: _specieSelezionata!.id!,
-        // Rimosso: idCategoria: _categoriaSelezionata!.id!,
       );
 
       widget.onSave(piantaDaSalvare);
@@ -165,10 +222,7 @@ class _PiantaFormState extends State<PiantaForm> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Compila tutti i campi obbligatori'),
-            backgroundColor: Colors.orange,
-          ),
+          const SnackBar(content: Text('Compila tutti i campi obbligatori')),
         );
       }
     }
@@ -176,7 +230,6 @@ class _PiantaFormState extends State<PiantaForm> {
 
   @override
   Widget build(BuildContext context) {
-    // ... (Il build method rimane invariato, qui per completezza)
     final inputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(12.0),
       borderSide: BorderSide(color: Colors.grey.shade400),
@@ -201,30 +254,108 @@ class _PiantaFormState extends State<PiantaForm> {
               validator: (v) => (v == null || v.trim().isEmpty) ? 'Inserisci un nome' : null,
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<Categoria>(
-              value: _categoriaSelezionata,
-              decoration: InputDecoration(labelText: 'Categoria *', prefixIcon: const Icon(Icons.category_outlined), border: inputBorder),
-              items: _categorie.map((c) => DropdownMenuItem(value: c, child: Text(c.nome))).toList(),
-              onChanged: (categoria) {
-                if (categoria != null) {
-                  setState(() {
-                    _categoriaSelezionata = categoria;
-                    _specieSelezionata = null;
-                  });
-                  _caricaSpecie(categoria);
-                }
-              },
-              validator: (v) => v == null ? 'Seleziona una categoria' : null,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<Categoria>(
+                    value: _categoriaSelezionata,
+                    decoration: InputDecoration(labelText: 'Categoria *', prefixIcon: const Icon(Icons.category_outlined), border: inputBorder),
+                    items: _categorie.map((c) => DropdownMenuItem(value: c, child: Text(c.nome))).toList(),
+                    onChanged: (categoria) {
+                      if (categoria != null) {
+                        setState(() {
+                          _categoriaSelezionata = categoria;
+                          _specieSelezionata = null;
+                          if (_creandoNuovaSpecie) _creandoNuovaSpecie = false;
+                        });
+                        _caricaSpecie(categoria);
+                      }
+                    },
+                    validator: (v) => v == null ? 'Seleziona una categoria' : null,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(_creandoNuovaCategoria ? Icons.close : Icons.add),
+                  tooltip: _creandoNuovaCategoria ? 'Annulla' : 'Nuova categoria',
+                  onPressed: () => setState(() => _creandoNuovaCategoria = !_creandoNuovaCategoria),
+                ),
+              ],
             ),
+
+            if (_creandoNuovaCategoria)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _nuovaCategoriaController,
+                        decoration: const InputDecoration(labelText: 'Nome nuova categoria', border: OutlineInputBorder()),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: _creaNuovaCategoria,
+                      child: const Text('Crea'),
+                    ),
+                  ],
+                ),
+              ),
+
             const SizedBox(height: 16),
-            DropdownButtonFormField<Specie>(
-              value: _specieSelezionata,
-              decoration: InputDecoration(labelText: 'Specie *', prefixIcon: const Icon(Icons.spa_outlined), border: inputBorder),
-              items: _specie.map((s) => DropdownMenuItem(value: s, child: Text(s.nome))).toList(),
-              onChanged: (specie) => setState(() => _specieSelezionata = specie),
-              validator: (v) => v == null ? 'Seleziona una specie' : null,
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<Specie>(
+                    value: _specieSelezionata,
+                    decoration: InputDecoration(
+                      labelText: 'Specie *',
+                      hintText: _categoriaSelezionata == null ? 'Scegli prima una categoria' : '',
+                      prefixIcon: const Icon(Icons.spa_outlined),
+                      border: inputBorder,
+                    ),
+                    items: _specie.map((s) => DropdownMenuItem(value: s, child: Text(s.nome))).toList(),
+                    onChanged: (specie) => setState(() => _specieSelezionata = specie),
+                    validator: (v) => v == null ? 'Seleziona una specie' : null,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(_creandoNuovaSpecie ? Icons.close : Icons.add),
+                  tooltip: _creandoNuovaSpecie ? 'Annulla' : 'Nuova specie',
+                  onPressed: _categoriaSelezionata == null
+                      ? null
+                      : () => setState(() => _creandoNuovaSpecie = !_creandoNuovaSpecie),
+                ),
+              ],
             ),
+
+            if (_creandoNuovaSpecie)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _nuovaSpecieController,
+                        decoration: const InputDecoration(labelText: 'Nome nuova specie', border: OutlineInputBorder()),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: _creaNuovaSpecie,
+                      child: const Text('Crea'),
+                    ),
+                  ],
+                ),
+              ),
+
             const SizedBox(height: 16),
+
             TextFormField(
               controller: _dataAcquistoController,
               readOnly: true,
@@ -241,6 +372,7 @@ class _PiantaFormState extends State<PiantaForm> {
               validator: (v) => _dataAcquisto == null ? 'Seleziona una data' : null,
             ),
             const SizedBox(height: 24),
+
             Text('Frequenze di cura (giorni)', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             Row(
@@ -253,12 +385,14 @@ class _PiantaFormState extends State<PiantaForm> {
               ],
             ),
             const SizedBox(height: 16),
+
             TextFormField(
               controller: _noteController,
               decoration: InputDecoration(labelText: 'Note (opzionale)', prefixIcon: const Icon(Icons.notes_outlined), border: inputBorder),
               maxLines: 3,
             ),
             const SizedBox(height: 16),
+
             Row(
               children: [
                 Container(
@@ -283,6 +417,7 @@ class _PiantaFormState extends State<PiantaForm> {
               ],
             ),
             const SizedBox(height: 32),
+
             ElevatedButton.icon(
               icon: const Icon(Icons.save),
               label: const Text('Salva Pianta'),
@@ -290,7 +425,7 @@ class _PiantaFormState extends State<PiantaForm> {
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                backgroundColor: Theme.of(context).primaryColor,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -312,7 +447,6 @@ class _PiantaFormState extends State<PiantaForm> {
 }
 
 class _FrequencyInput extends StatelessWidget {
-  // ... (Widget _FrequencyInput invariato)
   const _FrequencyInput({
     required this.controller,
     required this.icon,

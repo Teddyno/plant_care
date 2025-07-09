@@ -1,27 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/PiantaModel.dart';
 import '../../models/SpecieModel.dart';
 import '../../models/AttivitaCuraModel.dart';
 import '../../models/repository/SpecieRepository.dart';
-import '../../models/repository/PianteRepository.dart';
 import '../../services/db/DatabaseHelper.dart';
 import '../../components/PiantaForm.dart';
+import '../../providers/piante_provider.dart';
 
 /// Schermata che mostra i dettagli di una pianta specifica.
-class PianteDetailView extends StatefulWidget {
+/// è un ConsumerStatefulWidget per interagire con i provider.
+class PianteDetailView extends ConsumerStatefulWidget { // MODIFICATO
   final Pianta pianta;
   const PianteDetailView({super.key, required this.pianta});
 
   @override
-  State<PianteDetailView> createState() => _PianteDetailViewState();
+  ConsumerState<PianteDetailView> createState() => _PianteDetailViewState();
 }
 
-class _PianteDetailViewState extends State<PianteDetailView> {
+class _PianteDetailViewState extends ConsumerState<PianteDetailView> {
   late Pianta _pianta;
   List<AttivitaCura> _attivita = [];
   Specie? _specie;
 
-  final PianteRepository _pianteRepository = PianteRepository();
   final SpecieRepository _specieRepository = SpecieRepository.instance;
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
@@ -108,20 +109,10 @@ class _PianteDetailViewState extends State<PianteDetailView> {
                 body: PiantaForm(
                   piantaIniziale: _pianta,
                   onSave: (piantaDaAggiornare) async {
-                    try {
-                      await _pianteRepository.aggiornaPianta(piantaDaAggiornare);
-                      if (mounted) {
-                        Navigator.of(context).pop(piantaDaAggiornare);
-                      }
-                    } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Errore durante l\'aggiornamento: $e'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
+                    // MODIFICATO: Ora chiama il notifier per aggiornare lo stato globale
+                    await ref.read(pianteProvider.notifier).aggiornaPianta(piantaDaAggiornare);
+                    if (mounted) {
+                      Navigator.of(context).pop(piantaDaAggiornare);
                     }
                   },
                 ),
@@ -186,7 +177,6 @@ class _PianteDetailViewState extends State<PianteDetailView> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) {
-        // CORREZIONE: Usare StatefulBuilder invece di StatefulWidgetBuilder
         return StatefulBuilder(
             builder: (BuildContext context, StateSetter setStateDialog) {
               return AlertDialog(
@@ -254,7 +244,6 @@ class _PianteDetailViewState extends State<PianteDetailView> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) {
-        // CORREZIONE: Usare StatefulBuilder invece di StatefulWidgetBuilder
         return StatefulBuilder(
             builder: (BuildContext context, StateSetter setStateDialog) {
               return AlertDialog(
