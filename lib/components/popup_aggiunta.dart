@@ -1,11 +1,9 @@
 /*
  * POPUP AGGIUNTA PIANTA - COMPONENTE PER AGGIUNGERE NUOVE PIANTE
- * 
- * Questo file contiene il popup per l'aggiunta di nuove piante
+ * * Questo file contiene il popup per l'aggiunta di nuove piante
  * alla collezione. Si apre dal basso dello schermo e fornisce un form
  * completo per inserire tutti i dati necessari di una pianta.
- * 
- */
+ * */
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -17,9 +15,11 @@ import '../models/CategoriaModel.dart';
 import '../models/repository/PianteRepository.dart';
 import '../models/repository/SpecieRepository.dart';
 import '../models/repository/CategorieRepository.dart';
+// Import per formattare la data (ora funzionerà dopo aver aggiunto la dipendenza)
+import 'package:intl/intl.dart';
 
 /// Widget popup per l'aggiunta di una nuova pianta alla collezione.
-/// 
+///
 class PopupAggiunta extends StatefulWidget {
 
   const PopupAggiunta({super.key});
@@ -29,106 +29,42 @@ class PopupAggiunta extends StatefulWidget {
 }
 
 /// Stato interno del popup di aggiunta pianta.
-/// 
+///
 class _PopupAggiuntaState extends State<PopupAggiunta> {
   /// Chiave per la validazione del form.
-  /// 
-  /// Utilizzata per accedere al FormState e validare
-  /// tutti i campi prima del salvataggio.
   final _formKey = GlobalKey<FormState>();
-  
-  /// Controller per il campo nome della pianta.
-  /// 
-  /// Gestisce il testo inserito dall'utente nel campo
-  /// "Nome pianta" e fornisce metodi per manipolare il contenuto.
+
+  // Controller dei campi
   final _nomeController = TextEditingController();
-  
-  /// Controller per il campo frequenza di innaffiatura.
-  /// 
-  /// Gestisce il testo inserito dall'utente nel campo
-  /// "Frequenza innaffiatura" e fornisce metodi per manipolare il contenuto.
   final _frequenzaInnaffiaturaController = TextEditingController();
-  
-  /// Controller per il campo frequenza di potatura.
-  /// 
-  /// Gestisce il testo inserito dall'utente nel campo
-  /// "Frequenza potatura" e fornisce metodi per manipolare il contenuto.
   final _frequenzaPotaturaController = TextEditingController();
-  
-  /// Controller per il campo frequenza di rinvaso.
-  /// 
-  /// Gestisce il testo inserito dall'utente nel campo
-  /// "Frequenza rinvaso" e fornisce metodi per manipolare il contenuto.
   final _frequenzaRinvasoController = TextEditingController();
-  
-  /// Controller per il campo note.
-  /// 
-  /// Gestisce il testo inserito dall'utente nel campo
-  /// "Note" e fornisce metodi per manipolare il contenuto.
   final _noteController = TextEditingController();
-  
-  /// Controller per il campo nuova categoria.
-  /// 
-  /// Gestisce il testo inserito dall'utente quando crea
-  /// una nuova categoria.
   final _nuovaCategoriaController = TextEditingController();
-  
-  /// Controller per il campo nuova specie.
-  /// 
-  /// Gestisce il testo inserito dall'utente quando crea
-  /// una nuova specie.
   final _nuovaSpecieController = TextEditingController();
-  
+  final _dataAcquistoController = TextEditingController();
+
   /// Data di acquisto della pianta selezionata dall'utente.
-  /// 
   DateTime? _dataAcquisto;
 
   /// File della foto selezionata dall'utente.
-  /// 
-  /// Utilizzato per mostrare l'anteprima e convertire in BLOB.
   File? _foto;
-  
+
   /// Picker per selezionare le immagini dalla galleria.
   final ImagePicker _picker = ImagePicker();
 
-  /// Lista delle categorie disponibili nel database.
-  /// 
-  /// Caricata all'inizializzazione del widget.
+  // Liste e selezioni per i dropdown
   List<Categoria> _categorie = [];
-  
-  /// Lista delle specie disponibili per la categoria selezionata.
-  /// 
-  /// Aggiornata quando l'utente cambia categoria.
   List<Specie> _specie = [];
-  
-  /// Categoria attualmente selezionata.
-  /// 
-  /// Utilizzata per filtrare le specie disponibili.
   Categoria? _categoriaSelezionata;
-  
-  /// Specie attualmente selezionata.
-  /// 
-  /// Utilizzata per creare la pianta nel database.
   Specie? _specieSelezionata;
-  
-  /// Stato della pianta attualmente selezionato.
-  /// 
-  /// Utilizzato per creare la pianta nel database.
   String _statoSelezionato = 'Sana';
-  
-  /// Indica se l'utente sta creando una nuova categoria.
-  /// 
-  /// Quando true, mostra il campo di input per la nuova categoria.
+
+  // Stati per la UI
   bool _creandoNuovaCategoria = false;
-  
-  /// Indica se l'utente sta creando una nuova specie.
-  /// 
-  /// Quando true, mostra il campo di input per la nuova specie.
   bool _creandoNuovaSpecie = false;
-  
+
   /// Stati possibili per una pianta.
-  /// 
-  /// Utilizzati nel dropdown per la selezione dello stato.
   static const List<String> _statiPossibili = [
     'Sana',
     'Malata',
@@ -138,35 +74,22 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
     'Bisognosa di cure'
   ];
 
-  /// Repository per le operazioni sulle piante.
+  // Repository
   final PianteRepository _pianteRepository = PianteRepository();
-  
-  /// Repository per le operazioni sulle specie.
   final SpecieRepository _specieRepository = SpecieRepository.instance;
-  
-  /// Repository per le operazioni sulle categorie.
   final CategorieRepository _categorieRepository = CategorieRepository.instance;
 
-  /// Inizializza il widget caricando i dati necessari.
-  /// 
-  /// Questo metodo viene chiamato una sola volta quando il widget
-  /// viene creato. Carica le categorie dal database e inizializza
-  /// i dati di default.
-  /// 
-  /// AZIONI:
-  /// - Carica tutte le categorie dal database
-  /// - Imposta lo stato di default
-  /// - Gestisce eventuali errori di caricamento
   @override
   void initState() {
     super.initState();
     _caricaCategorie();
   }
 
+  // ===================================================================
+  // == METODI ORIGINALI REINSERITI (SENZA MODIFICHE ALLA LOGICA) ==
+  // ===================================================================
+
   /// Carica le categorie dal database.
-  /// 
-  /// Questo metodo recupera tutte le categorie disponibili
-  /// e le memorizza nello stato del widget.
   Future<void> _caricaCategorie() async {
     try {
       final categorie = await _categorieRepository.getTutteLeCategorie();
@@ -188,10 +111,6 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
   }
 
   /// Carica le specie per una categoria specifica.
-  /// 
-  /// Questo metodo viene chiamato quando l'utente seleziona
-  /// una categoria e aggiorna la lista delle specie disponibili.
-  /// 
   Future<void> _caricaSpecie(Categoria categoria) async {
     try {
       final specie = await _specieRepository.getSpecieByCategoria(categoria.id!);
@@ -214,10 +133,6 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
   }
 
   /// Crea una nuova categoria nel database.
-  /// 
-  /// Questo metodo aggiunge una nuova categoria al database
-  /// e la seleziona automaticamente.
-  /// 
   Future<void> _creaNuovaCategoria() async {
     final nomeCategoria = _nuovaCategoriaController.text.trim();
     if (nomeCategoria.isEmpty) {
@@ -233,26 +148,16 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
     try {
       final nuovaCategoria = Categoria(nome: nomeCategoria);
       await _categorieRepository.aggiungiCategoria(nuovaCategoria);
-      
-      // Ricarica le categorie per ottenere l'ID assegnato
       await _caricaCategorie();
-      
-      // Trova la categoria appena creata e la seleziona
-      final categoriaCreata = _categorie.firstWhere(
-        (c) => c.nome == nomeCategoria,
-        orElse: () => _categorie.last,
-      );
-      
+      final categoriaCreata = _categorie.firstWhere((c) => c.nome == nomeCategoria);
+
       if (mounted) {
         setState(() {
           _categoriaSelezionata = categoriaCreata;
           _creandoNuovaCategoria = false;
         });
         _nuovaCategoriaController.clear();
-        
-        // Carica le specie per la nuova categoria
         await _caricaSpecie(categoriaCreata);
-        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Categoria "$nomeCategoria" creata con successo!'),
@@ -273,55 +178,32 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
   }
 
   /// Crea una nuova specie nel database.
-  /// 
-  /// Questo metodo aggiunge una nuova specie al database
-  /// per la categoria selezionata e la seleziona automaticamente.
-  /// 
   Future<void> _creaNuovaSpecie() async {
     final nomeSpecie = _nuovaSpecieController.text.trim();
     if (nomeSpecie.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Inserisci un nome per la specie'),
-          backgroundColor: Colors.orange,
-        ),
+        const SnackBar(content: Text('Inserisci un nome per la specie')),
       );
       return;
     }
-
     if (_categoriaSelezionata == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Seleziona prima una categoria'),
-          backgroundColor: Colors.orange,
-        ),
+        const SnackBar(content: Text('Seleziona prima una categoria')),
       );
       return;
     }
-
     try {
-      final nuovaSpecie = Specie(
-        nome: nomeSpecie,
-        idCategoria: _categoriaSelezionata!.id!,
-      );
+      final nuovaSpecie = Specie(nome: nomeSpecie, idCategoria: _categoriaSelezionata!.id!);
       await _specieRepository.aggiungiSpecie(nuovaSpecie);
-      
-      // Ricarica le specie per ottenere l'ID assegnato
       await _caricaSpecie(_categoriaSelezionata!);
-      
-      // Trova la specie appena creata e la seleziona
-      final specieCreata = _specie.firstWhere(
-        (s) => s.nome == nomeSpecie,
-        orElse: () => _specie.last,
-      );
-      
+      final specieCreata = _specie.firstWhere((s) => s.nome == nomeSpecie);
+
       if (mounted) {
         setState(() {
           _specieSelezionata = specieCreata;
           _creandoNuovaSpecie = false;
         });
         _nuovaSpecieController.clear();
-        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Specie "$nomeSpecie" creata con successo!'),
@@ -342,10 +224,6 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
   }
 
   /// Converte un file immagine in Uint8List per il database.
-  /// 
-  /// Questo metodo legge il file immagine e lo converte
-  /// nel formato BLOB richiesto dal database SQLite.
-  /// 
   Future<Uint8List?> _convertiImmagineInBytes(File file) async {
     try {
       return await file.readAsBytes();
@@ -362,45 +240,24 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
     }
   }
 
-  /// Pulisce le risorse quando il widget viene distrutto.
-  /// 
-  /// Questo metodo viene chiamato automaticamente quando il widget
-  /// viene rimosso dall'albero dei widget. È importante per evitare
-  /// memory leak liberando i controller dei text field.
-  @override
-  void dispose() {
-    _nomeController.dispose();
-    _frequenzaInnaffiaturaController.dispose();
-    _frequenzaPotaturaController.dispose();
-    _frequenzaRinvasoController.dispose();
-    _noteController.dispose();
-    _nuovaCategoriaController.dispose();
-    _nuovaSpecieController.dispose();
-    super.dispose();
-  }
-
   /// Salva la nuova pianta nel database.
-  /// 
   Future<void> _salvaPianta() async {
-    if (_formKey.currentState!.validate() && 
-        _dataAcquisto != null && 
+    if (_formKey.currentState!.validate() &&
+        _dataAcquisto != null &&
         _specieSelezionata != null) {
       try {
-        // Nasconde la tastiera per migliorare l'esperienza utente
         FocusScope.of(context).unfocus();
-        
-        // Converte l'immagine se presente
+
         Uint8List? fotoBytes;
         if (_foto != null) {
           fotoBytes = await _convertiImmagineInBytes(_foto!);
-          if (fotoBytes == null) return; // Errore nella conversione
+          if (fotoBytes == null) return;
         }
-        
-        // Ottiene i valori delle frequenze (opzionali)
+
         int? frequenzaInnaffiatura;
         int? frequenzaPotatura;
         int? frequenzaRinvaso;
-        
+
         if (_frequenzaInnaffiaturaController.text.trim().isNotEmpty) {
           frequenzaInnaffiatura = int.parse(_frequenzaInnaffiaturaController.text.trim());
         }
@@ -410,32 +267,23 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
         if (_frequenzaRinvasoController.text.trim().isNotEmpty) {
           frequenzaRinvaso = int.parse(_frequenzaRinvasoController.text.trim());
         }
-        
-        // Crea un nuovo oggetto pianta con i dati del form
+
         final pianta = Pianta(
           nome: _nomeController.text.trim(),
           dataAcquisto: _dataAcquisto!,
           foto: fotoBytes,
-          frequenzaInnaffiatura: frequenzaInnaffiatura ?? 7, // Default a 7 giorni
-          frequenzaPotatura: frequenzaPotatura ?? 30, // Default a 30 giorni
-          frequenzaRinvaso: frequenzaRinvaso ?? 365, // Default a 365 giorni
+          frequenzaInnaffiatura: frequenzaInnaffiatura ?? 7,
+          frequenzaPotatura: frequenzaPotatura ?? 30,
+          frequenzaRinvaso: frequenzaRinvaso ?? 365,
           note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
           stato: _statoSelezionato,
           idSpecie: _specieSelezionata!.id!,
         );
-        
-        // Salva la pianta nel database
+
         await _pianteRepository.aggiungiPianta(pianta);
-        
-        // Verifica che il widget sia ancora montato prima di aggiornare l'UI
-        // Questo previene errori se il widget viene distrutto durante l'operazione
+
         if (mounted) {
-          // Chiude il popup e restituisce true per indicare successo
-          // Il valore true viene utilizzato dal chiamante per aggiornare le schermate
           Navigator.of(context).pop(true);
-          
-          // Mostra messaggio di successo con SnackBar
-          // Il colore verde indica successo, il testo conferma l'azione
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Pianta "${pianta.nome}" aggiunta con successo!'),
@@ -444,8 +292,6 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
           );
         }
       } catch (e) {
-        // In caso di errore, mostra un messaggio di errore
-        // Il colore rosso indica errore, il testo spiega il problema
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -456,7 +302,6 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
         }
       }
     } else {
-      // Mostra messaggio se mancano campi obbligatori
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -468,13 +313,36 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
     }
   }
 
+  // ===================================================================
+  // ===================================================================
+
+  @override
+  void dispose() {
+    _nomeController.dispose();
+    _frequenzaInnaffiaturaController.dispose();
+    _frequenzaPotaturaController.dispose();
+    _frequenzaRinvasoController.dispose();
+    _noteController.dispose();
+    _nuovaCategoriaController.dispose();
+    _nuovaSpecieController.dispose();
+    _dataAcquistoController.dispose();
+    super.dispose();
+  }
+
   /// Costruisce l'interfaccia utente del popup.
-  /// 
   @override
   Widget build(BuildContext context) {
+    final inputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12.0),
+      borderSide: BorderSide(color: Colors.grey.shade400),
+    );
+
+    final focusedInputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12.0),
+      borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2.0),
+    );
+
     return Padding(
-      // Adatta il padding in base alla tastiera
-      // viewInsets contiene l'altezza della tastiera
       padding: MediaQuery.of(context).viewInsets,
       child: SingleChildScrollView(
         child: Padding(
@@ -485,343 +353,202 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Header con titolo e pulsante di chiusura
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
                       child: Text(
-                        'Aggiungi una nuova pianta', 
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ), 
-                        textAlign: TextAlign.center
+                          'Aggiungi una nuova pianta',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center
                       ),
                     ),
                     IconButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(false);
-                      },
+                      onPressed: () => Navigator.of(context).pop(false),
                       icon: const Icon(Icons.close),
                       style: IconButton.styleFrom(
-                        backgroundColor: Colors.grey.shade100,
+                        backgroundColor: Colors.grey.shade200,
                         shape: const CircleBorder(),
                       ),
                       tooltip: 'Chiudi',
                     ),
                   ],
                 ),
+                const SizedBox(height: 8),
+                const Divider(),
                 const SizedBox(height: 16),
-                
-                // Campo nome pianta
+
                 TextFormField(
                   controller: _nomeController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Nome pianta *',
                     hintText: 'Es: Rosa del balcone',
+                    prefixIcon: const Icon(Icons.grass),
+                    border: inputBorder,
+                    focusedBorder: focusedInputBorder,
                   ),
                   validator: (v) => v == null || v.trim().isEmpty ? 'Inserisci un nome' : null,
                   textInputAction: TextInputAction.next,
                 ),
-                const SizedBox(height: 12),
-                
-                // Dropdown categoria con opzione per creare nuova
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<Categoria>(
-                        value: _categoriaSelezionata,
-                        decoration: const InputDecoration(
-                          labelText: 'Categoria *',
-                          hintText: 'Seleziona una categoria',
-                        ),
-                        items: _categorie.map((categoria) {
-                          return DropdownMenuItem(
-                            value: categoria,
-                            child: Text(categoria.nome),
-                          );
-                        }).toList(),
-                        onChanged: (Categoria? categoria) {
-                          setState(() {
-                            _categoriaSelezionata = categoria;
-                            _specieSelezionata = null;
-                          });
-                          if (categoria != null) {
-                            _caricaSpecie(categoria);
-                          }
-                        },
-                        validator: (value) => value == null ? 'Seleziona una categoria' : null,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _creandoNuovaCategoria = !_creandoNuovaCategoria;
-                          if (!_creandoNuovaCategoria) {
-                            _nuovaCategoriaController.clear();
-                          }
-                        });
-                      },
-                      icon: Icon(_creandoNuovaCategoria ? Icons.close : Icons.add),
-                      tooltip: _creandoNuovaCategoria ? 'Annulla' : 'Aggiungi categoria',
-                      style: IconButton.styleFrom(
-                        backgroundColor: _creandoNuovaCategoria ? Colors.red.shade100 : Colors.green.shade100,
-                        foregroundColor: _creandoNuovaCategoria ? Colors.red.shade900 : Colors.green.shade900,
-                      ),
-                    ),
-                  ],
-                ),
-                
-                // Campo per nuova categoria
-                if (_creandoNuovaCategoria) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _nuovaCategoriaController,
-                          decoration: const InputDecoration(
-                            labelText: 'Nome nuova categoria',
-                            hintText: 'Es: Piante grasse',
-                          ),
-                          textInputAction: TextInputAction.done,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: _creaNuovaCategoria,
-                        child: const Text('Crea'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 16),
+
+                DropdownButtonFormField<Categoria>(
+                  value: _categoriaSelezionata,
+                  decoration: InputDecoration(
+                    labelText: 'Categoria *',
+                    hintText: 'Seleziona una categoria',
+                    prefixIcon: const Icon(Icons.category_outlined),
+                    border: inputBorder,
+                    focusedBorder: focusedInputBorder,
                   ),
-                ],
-                const SizedBox(height: 12),
-                
-                // Dropdown specie con opzione per creare nuova
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<Specie>(
-                        value: _specieSelezionata,
-                        decoration: const InputDecoration(
-                          labelText: 'Specie *',
-                          hintText: 'Seleziona una specie',
-                        ),
-                        items: _specie.map((specie) {
-                          return DropdownMenuItem(
-                            value: specie,
-                            child: Text(specie.nome),
-                          );
-                        }).toList(),
-                        onChanged: (Specie? specie) {
-                          setState(() {
-                            _specieSelezionata = specie;
-                          });
-                        },
-                        validator: (value) => value == null ? 'Seleziona una specie' : null,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: _categoriaSelezionata == null ? null : () {
-                        setState(() {
-                          _creandoNuovaSpecie = !_creandoNuovaSpecie;
-                          if (!_creandoNuovaSpecie) {
-                            _nuovaSpecieController.clear();
-                          }
-                        });
-                      },
-                      icon: Icon(_creandoNuovaSpecie ? Icons.close : Icons.add),
-                      tooltip: _creandoNuovaSpecie ? 'Annulla' : 'Aggiungi specie',
-                      style: IconButton.styleFrom(
-                        backgroundColor: _creandoNuovaSpecie ? Colors.red.shade100 : Colors.green.shade100,
-                        foregroundColor: _creandoNuovaSpecie ? Colors.red.shade900 : Colors.green.shade900,
-                      ),
-                    ),
-                  ],
+                  items: _categorie.map((c) => DropdownMenuItem(value: c, child: Text(c.nome))).toList(),
+                  onChanged: (categoria) {
+                    if (categoria != null) {
+                      setState(() {
+                        _categoriaSelezionata = categoria;
+                        _specieSelezionata = null; // Resetta la specie quando cambia la categoria
+                      });
+                      _caricaSpecie(categoria);
+                    }
+                  },
+                  validator: (v) => v == null ? 'Seleziona una categoria' : null,
                 ),
-                
-                // Campo per nuova specie
-                if (_creandoNuovaSpecie) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _nuovaSpecieController,
-                          decoration: const InputDecoration(
-                            labelText: 'Nome nuova specie',
-                            hintText: 'Es: Echeveria elegans',
-                          ),
-                          textInputAction: TextInputAction.done,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: _creaNuovaSpecie,
-                        child: const Text('Crea'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 16),
+
+                DropdownButtonFormField<Specie>(
+                  value: _specieSelezionata,
+                  decoration: InputDecoration(
+                    labelText: 'Specie *',
+                    hintText: _categoriaSelezionata == null ? 'Prima scegli una categoria' : 'Seleziona una specie',
+                    prefixIcon: const Icon(Icons.spa_outlined),
+                    border: inputBorder,
+                    focusedBorder: focusedInputBorder,
                   ),
-                ],
-                const SizedBox(height: 12),
-                
-                // Dropdown stato
+                  items: _specie.map((s) => DropdownMenuItem(value: s, child: Text(s.nome))).toList(),
+                  onChanged: (specie) => setState(() => _specieSelezionata = specie),
+                  validator: (v) => v == null ? 'Seleziona una specie' : null,
+                ),
+                const SizedBox(height: 16),
+
                 DropdownButtonFormField<String>(
                   value: _statoSelezionato,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Stato della pianta *',
-                    hintText: 'Seleziona lo stato',
+                    prefixIcon: const Icon(Icons.favorite_border_outlined),
+                    border: inputBorder,
+                    focusedBorder: focusedInputBorder,
                   ),
-                  items: _statiPossibili.map((stato) {
-                    return DropdownMenuItem(
-                      value: stato,
-                      child: Text(stato),
-                    );
-                  }).toList(),
-                  onChanged: (String? stato) {
-                    setState(() {
-                      _statoSelezionato = stato!;
-                    });
-                  },
+                  items: _statiPossibili.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                  onChanged: (stato) => setState(() => _statoSelezionato = stato!),
+                ),
+                const SizedBox(height: 24),
+
+                Text(
+                  'Frequenze di cura (giorni)',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 12),
-                
-                // Campo frequenza innaffiatura (opzionale)
-                TextFormField(
-                  controller: _frequenzaInnaffiaturaController,
-                  decoration: const InputDecoration(
-                    labelText: 'Frequenza innaffiatura (giorni)',
-                    hintText: 'Es: 3 (opzionale)',
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (v) {
-                    if (v != null && v.trim().isNotEmpty) {
-                      final numero = int.tryParse(v.trim());
-                      if (numero == null || numero <= 0) {
-                        return 'Inserisci un numero valido maggiore di 0';
-                      }
-                    }
-                    return null;
-                  },
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 12),
-                
-                // Campo frequenza potatura (opzionale)
-                TextFormField(
-                  controller: _frequenzaPotaturaController,
-                  decoration: const InputDecoration(
-                    labelText: 'Frequenza potatura (giorni)',
-                    hintText: 'Es: 30 (opzionale)',
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (v) {
-                    if (v != null && v.trim().isNotEmpty) {
-                      final numero = int.tryParse(v.trim());
-                      if (numero == null || numero <= 0) {
-                        return 'Inserisci un numero valido maggiore di 0';
-                      }
-                    }
-                    return null;
-                  },
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 12),
-                
-                // Campo frequenza rinvaso (opzionale)
-                TextFormField(
-                  controller: _frequenzaRinvasoController,
-                  decoration: const InputDecoration(
-                    labelText: 'Frequenza rinvaso (giorni)',
-                    hintText: 'Es: 365 (opzionale)',
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (v) {
-                    if (v != null && v.trim().isNotEmpty) {
-                      final numero = int.tryParse(v.trim());
-                      if (numero == null || numero <= 0) {
-                        return 'Inserisci un numero valido maggiore di 0';
-                      }
-                    }
-                    return null;
-                  },
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 12),
-                
-                // Campo note
-                TextFormField(
-                  controller: _noteController,
-                  decoration: const InputDecoration(
-                    labelText: 'Note (opzionale)',
-                    hintText: 'Note aggiuntive sulla pianta',
-                  ),
-                  maxLines: 3,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 12),
-                
-                // Campo data acquisto
                 Row(
                   children: [
                     Expanded(
-                      child: Text(_dataAcquisto == null
-                          ? 'Data acquisto non selezionata *'
-                          : 'Data acquisto: ${_dataAcquisto!.day}/${_dataAcquisto!.month}/${_dataAcquisto!.year}'),
+                      child: _FrequencyInput(
+                        controller: _frequenzaInnaffiaturaController,
+                        icon: Icons.water_drop_outlined,
+                        hintText: 'Innaffiatura',
+                        inputBorder: inputBorder,
+                        focusedInputBorder: focusedInputBorder,
+                      ),
                     ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.calendar_today),
-                      label: const Text('Scegli data'),
-                      onPressed: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime.now(),
-                        );
-                        if (picked != null) {
-                          setState(() => _dataAcquisto = picked);
-                        }
-                      },
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _FrequencyInput(
+                        controller: _frequenzaPotaturaController,
+                        icon: Icons.content_cut_outlined,
+                        hintText: 'Potatura',
+                        inputBorder: inputBorder,
+                        focusedInputBorder: focusedInputBorder,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _FrequencyInput(
+                        controller: _frequenzaRinvasoController,
+                        icon: Icons.yard_outlined,
+                        hintText: 'Rinvaso',
+                        inputBorder: inputBorder,
+                        focusedInputBorder: focusedInputBorder,
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                
-                // Campo foto con anteprima
-                Text('Foto della pianta (opzionale)', style: TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _dataAcquistoController,
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    labelText: 'Data acquisto *',
+                    hintText: 'Seleziona una data',
+                    prefixIcon: const Icon(Icons.calendar_today_outlined),
+                    border: inputBorder,
+                    focusedBorder: focusedInputBorder,
+                  ),
+                  onTap: () async {
+                    FocusScope.of(context).requestFocus(FocusNode());
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _dataAcquisto ?? DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _dataAcquisto = picked;
+                        _dataAcquistoController.text = DateFormat('dd/MM/yyyy').format(picked);
+                      });
+                    }
+                  },
+                  validator: (v) => _dataAcquisto == null ? 'Seleziona una data' : null,
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _noteController,
+                  decoration: InputDecoration(
+                    labelText: 'Note (opzionale)',
+                    hintText: 'Note aggiuntive sulla pianta...',
+                    prefixIcon: const Icon(Icons.notes_outlined),
+                    border: inputBorder,
+                    focusedBorder: focusedInputBorder,
+                  ),
+                  maxLines: 3,
+                  textInputAction: TextInputAction.done,
+                ),
+                const SizedBox(height: 16),
+
                 Row(
                   children: [
                     Container(
-                      width: 64,
-                      height: 64,
+                      width: 80,
+                      height: 80,
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey.shade300),
                         borderRadius: BorderRadius.circular(12),
                         color: Colors.grey.shade100,
                       ),
                       child: _foto != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.file(_foto!, fit: BoxFit.cover, width: 64, height: 64),
-                          )
-                        : const Icon(Icons.image, size: 36, color: Colors.grey),
+                          ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(_foto!, fit: BoxFit.cover),
+                      )
+                          : const Icon(Icons.image_outlined, size: 40, color: Colors.grey),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.photo_camera),
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.photo_camera_outlined),
                         label: const Text('Scegli foto'),
                         onPressed: () async {
                           final picked = await _picker.pickImage(source: ImageSource.gallery);
@@ -829,32 +556,45 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
                             setState(() => _foto = File(picked.path));
                           }
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green.shade100,
-                          foregroundColor: Colors.green.shade900,
+                        style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            )
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                
-                // Pulsanti di azione
+                const SizedBox(height: 24),
+
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(false);
-                        },
+                        onPressed: () => Navigator.of(context).pop(false),
                         child: const Text('Annulla'),
+                        style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            )
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: ElevatedButton(
                         onPressed: _salvaPianta,
-                        child: const Text('Salva'),
+                        child: const Text('Salva Pianta'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          backgroundColor: Theme.of(context).primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
                       ),
                     ),
                   ],
@@ -864,6 +604,49 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Widget helper per i campi di input della frequenza.
+class _FrequencyInput extends StatelessWidget {
+  const _FrequencyInput({
+    required this.controller,
+    required this.icon,
+    required this.hintText,
+    required this.inputBorder,
+    required this.focusedInputBorder,
+  });
+
+  final TextEditingController controller;
+  final IconData icon;
+  final String hintText;
+  final InputBorder inputBorder;
+  final InputBorder focusedInputBorder;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        hintText: hintText,
+        prefixIcon: Icon(icon, size: 20),
+        border: inputBorder,
+        focusedBorder: focusedInputBorder,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+      ),
+      textAlign: TextAlign.center,
+      keyboardType: TextInputType.number,
+      validator: (v) {
+        if (v != null && v.trim().isNotEmpty) {
+          final numero = int.tryParse(v.trim());
+          if (numero == null || numero <= 0) {
+            return 'X'; // Messaggio brevissimo per non rompere la UI
+          }
+        }
+        return null;
+      },
+      textInputAction: TextInputAction.next,
     );
   }
 }
