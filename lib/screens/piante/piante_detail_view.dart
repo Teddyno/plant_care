@@ -5,8 +5,6 @@ import '../../models/AttivitaCuraModel.dart';
 import '../../models/repository/SpecieRepository.dart';
 import '../../models/repository/PianteRepository.dart';
 import '../../services/db/DatabaseHelper.dart';
-
-// Importa il form riutilizzabile
 import '../../components/PiantaForm.dart';
 
 /// Schermata che mostra i dettagli di una pianta specifica.
@@ -27,18 +25,15 @@ class _PianteDetailViewState extends State<PianteDetailView> {
   final SpecieRepository _specieRepository = SpecieRepository.instance;
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  String _notePersonali = '';
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _pianta = widget.pianta;
-    _notePersonali = widget.pianta.note ?? '';
     _caricaDati();
   }
 
-  /// Carica i dati della pianta dal database
   Future<void> _caricaDati() async {
     setState(() => _isLoading = true);
     try {
@@ -51,12 +46,10 @@ class _PianteDetailViewState extends State<PianteDetailView> {
     }
   }
 
-  /// Formatta una data in formato leggibile
   String _formattaData(DateTime data) {
     return '${data.day}/${data.month}/${data.year}';
   }
 
-  /// Restituisce l'icona appropriata per il tipo di attività
   IconData _getActivityIcon(String tipo) {
     switch (tipo) {
       case 'innaffiatura':
@@ -70,7 +63,6 @@ class _PianteDetailViewState extends State<PianteDetailView> {
     }
   }
 
-  /// Restituisce il colore appropriato per il tipo di attività
   Color _getActivityColor(String tipo) {
     switch (tipo) {
       case 'innaffiatura':
@@ -84,7 +76,6 @@ class _PianteDetailViewState extends State<PianteDetailView> {
     }
   }
 
-  /// Mostra un dialog per modificare la pianta usando PiantaForm.
   Future<void> _modificaPianta() async {
     final piantaAggiornata = await showModalBottomSheet<Pianta>(
       context: context,
@@ -96,6 +87,7 @@ class _PianteDetailViewState extends State<PianteDetailView> {
         return DraggableScrollableSheet(
           expand: false,
           initialChildSize: 0.9,
+          maxChildSize: 0.9,
           builder: (BuildContext context, ScrollController scrollController) {
             return ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -122,7 +114,14 @@ class _PianteDetailViewState extends State<PianteDetailView> {
                         Navigator.of(context).pop(piantaDaAggiornare);
                       }
                     } catch (e) {
-                      // Gestione errore
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Errore durante l\'aggiornamento: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   },
                 ),
@@ -136,7 +135,6 @@ class _PianteDetailViewState extends State<PianteDetailView> {
     if (piantaAggiornata != null) {
       setState(() {
         _pianta = piantaAggiornata;
-        _notePersonali = piantaAggiornata.note ?? '';
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -149,7 +147,6 @@ class _PianteDetailViewState extends State<PianteDetailView> {
     }
   }
 
-  /// Elimina un'attività di cura.
   void _eliminaAttivita(AttivitaCura attivita) async {
     final result = await showDialog<bool>(
       context: context,
@@ -182,47 +179,57 @@ class _PianteDetailViewState extends State<PianteDetailView> {
     }
   }
 
-  /// Modifica un'attività di cura esistente.
   void _modificaAttivita(AttivitaCura attivita) async {
     String tipoAttivita = attivita.tipoAttivita;
     DateTime data = attivita.data;
 
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(children: [Icon(Icons.edit, color: Theme.of(context).colorScheme.primary, size: 28), const SizedBox(width: 12), const Text('Modifica attività')]),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            DropdownButtonFormField<String>(
-              value: tipoAttivita,
-              decoration: InputDecoration(labelText: 'Tipo attività', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey[50]),
-              items: ['innaffiatura', 'potatura', 'rinvaso'].map((t) => DropdownMenuItem(value: t, child: Text(t.capitalize()))).toList(),
-              onChanged: (v) => tipoAttivita = v ?? 'innaffiatura',
-            ),
-            const SizedBox(height: 16),
-            InkWell(
-              onTap: () async {
-                final date = await showDatePicker(context: context, initialDate: data, firstDate: DateTime(2020), lastDate: DateTime(2030));
-                if (date != null) data = date;
-              },
-              child: InputDecorator(
-                decoration: InputDecoration(labelText: 'Data', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey[50]),
-                child: Text(_formattaData(data)),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Annulla')),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-            child: const Text('Salva'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        // CORREZIONE: Usare StatefulBuilder invece di StatefulWidgetBuilder
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setStateDialog) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                title: Row(children: [Icon(Icons.edit, color: Theme.of(context).colorScheme.primary, size: 28), const SizedBox(width: 12), const Text('Modifica attività')]),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      value: tipoAttivita,
+                      decoration: InputDecoration(labelText: 'Tipo attività', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey[50]),
+                      items: ['innaffiatura', 'potatura', 'rinvaso'].map((t) => DropdownMenuItem(value: t, child: Text(t.capitalize()))).toList(),
+                      onChanged: (v) => tipoAttivita = v ?? 'innaffiatura',
+                    ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: () async {
+                        final date = await showDatePicker(context: context, initialDate: data, firstDate: DateTime(2020), lastDate: DateTime(2030));
+                        if (date != null) {
+                          setStateDialog(() {
+                            data = date;
+                          });
+                        }
+                      },
+                      child: InputDecorator(
+                        decoration: InputDecoration(labelText: 'Data', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey[50]),
+                        child: Text(_formattaData(data)),
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Annulla')),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                    child: const Text('Salva'),
+                  ),
+                ],
+              );
+            }
+        );
+      },
     );
 
     if (result == true) {
@@ -240,47 +247,57 @@ class _PianteDetailViewState extends State<PianteDetailView> {
     }
   }
 
-  /// Aggiunge una nuova attività di cura.
   void _aggiungiAttivita() async {
     String tipoAttivita = 'innaffiatura';
     DateTime data = DateTime.now().add(const Duration(days: 1));
 
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(children: [Icon(Icons.add, color: Theme.of(context).colorScheme.primary, size: 28), const SizedBox(width: 12), const Text('Aggiungi attività')]),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            DropdownButtonFormField<String>(
-              value: tipoAttivita,
-              decoration: InputDecoration(labelText: 'Tipo attività', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey[50]),
-              items: ['innaffiatura', 'potatura', 'rinvaso'].map((t) => DropdownMenuItem(value: t, child: Text(t.capitalize()))).toList(),
-              onChanged: (v) => tipoAttivita = v ?? 'innaffiatura',
-            ),
-            const SizedBox(height: 16),
-            InkWell(
-              onTap: () async {
-                final date = await showDatePicker(context: context, initialDate: data, firstDate: DateTime(2020), lastDate: DateTime(2030));
-                if (date != null) data = date;
-              },
-              child: InputDecorator(
-                decoration: InputDecoration(labelText: 'Data', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey[50]),
-                child: Text(_formattaData(data)),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Annulla')),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-            child: const Text('Aggiungi'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        // CORREZIONE: Usare StatefulBuilder invece di StatefulWidgetBuilder
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setStateDialog) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                title: Row(children: [Icon(Icons.add, color: Theme.of(context).colorScheme.primary, size: 28), const SizedBox(width: 12), const Text('Aggiungi attività')]),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      value: tipoAttivita,
+                      decoration: InputDecoration(labelText: 'Tipo attività', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey[50]),
+                      items: ['innaffiatura', 'potatura', 'rinvaso'].map((t) => DropdownMenuItem(value: t, child: Text(t.capitalize()))).toList(),
+                      onChanged: (v) => tipoAttivita = v ?? 'innaffiatura',
+                    ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: () async {
+                        final date = await showDatePicker(context: context, initialDate: data, firstDate: DateTime(2020), lastDate: DateTime(2030));
+                        if (date != null) {
+                          setStateDialog(() {
+                            data = date;
+                          });
+                        }
+                      },
+                      child: InputDecorator(
+                        decoration: InputDecoration(labelText: 'Data', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey[50]),
+                        child: Text(_formattaData(data)),
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Annulla')),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                    child: const Text('Aggiungi'),
+                  ),
+                ],
+              );
+            }
+        );
+      },
     );
 
     if (result == true) {
@@ -295,12 +312,11 @@ class _PianteDetailViewState extends State<PianteDetailView> {
     }
   }
 
-  /// Costruisce l'interfaccia utente della schermata dettagli
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Caricamento...'), backgroundColor: Theme.of(context).colorScheme.primary),
+        appBar: AppBar(title: const Text('Caricamento...')),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -319,7 +335,6 @@ class _PianteDetailViewState extends State<PianteDetailView> {
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Sezione informazioni generali
                 Container(
                   margin: const EdgeInsets.only(bottom: 24),
                   child: Material(
@@ -331,7 +346,12 @@ class _PianteDetailViewState extends State<PianteDetailView> {
                         padding: const EdgeInsets.all(20),
                         child: Row(
                           children: [
-                            Image.asset('assets/icon.png', width: 60, height: 60),
+                            _pianta.foto != null
+                                ? ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Image.memory(_pianta.foto!, width: 60, height: 60, fit: BoxFit.cover),
+                            )
+                                : Image.asset('assets/icon.png', width: 60, height: 60, errorBuilder: (context, error, stackTrace) => const Icon(Icons.local_florist, size: 60)),
                             const SizedBox(width: 16),
                             Expanded(
                               child: Column(
@@ -351,7 +371,6 @@ class _PianteDetailViewState extends State<PianteDetailView> {
                   ),
                 ),
 
-                // Sezione attività di cura
                 Container(
                   margin: const EdgeInsets.only(bottom: 24),
                   child: Material(
@@ -429,27 +448,39 @@ class _PianteDetailViewState extends State<PianteDetailView> {
                   ),
                 ),
 
-                // Sezione note personali
                 Container(
                   margin: const EdgeInsets.only(bottom: 24),
                   child: Material(
                     elevation: 4,
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1)),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1),
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(children: [Icon(Icons.note_alt, color: Theme.of(context).colorScheme.primary, size: 28), const SizedBox(width: 12), Text('Note personali', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold))]),
+                            Row(
+                              children: [
+                                Icon(Icons.note_alt, color: Theme.of(context).colorScheme.primary, size: 28),
+                                const SizedBox(width: 12),
+                                Text('Note personali', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                              ],
+                            ),
                             const SizedBox(height: 16),
-                            TextFormField(
-                              initialValue: _notePersonali,
-                              maxLines: 4,
-                              minLines: 2,
-                              decoration: InputDecoration(hintText: 'Aggiungi qui le tue note personali su questa pianta...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey[50]),
-                              onChanged: (v) => setState(() => _notePersonali = v),
+                            (_pianta.note != null && _pianta.note!.isNotEmpty)
+                                ? Text(
+                              _pianta.note!,
+                              style: TextStyle(fontSize: 16, color: Colors.grey[800], height: 1.5),
+                            )
+                                : Text(
+                              'Nessuna nota personale.',
+                              style: TextStyle(fontSize: 16, color: Colors.grey[500], fontStyle: FontStyle.italic),
                             ),
                           ],
                         ),
@@ -466,7 +497,6 @@ class _PianteDetailViewState extends State<PianteDetailView> {
   }
 }
 
-/// Estensione per capitalizzare la prima lettera
 extension StringExtension on String {
   String capitalize() {
     if (isEmpty) return this;
