@@ -608,7 +608,7 @@ class _PopupAggiuntaState extends State<PopupAggiunta> {
   }
 }
 
-/// Widget helper per i campi di input della frequenza.
+/// Widget helper per i campi di input della frequenza
 class _FrequencyInput extends StatelessWidget {
   const _FrequencyInput({
     required this.controller,
@@ -626,6 +626,12 @@ class _FrequencyInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Definiamo i bordi specifici per lo stato di errore.
+    final errorBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12.0),
+      borderSide: BorderSide(color: Colors.red.shade700, width: 1.5),
+    );
+
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
@@ -633,7 +639,10 @@ class _FrequencyInput extends StatelessWidget {
         prefixIcon: Icon(icon, size: 20),
         border: inputBorder,
         focusedBorder: focusedInputBorder,
+        errorBorder: errorBorder,
+        focusedErrorBorder: errorBorder,
         contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+        errorStyle: const TextStyle(height: 0, fontSize: 0),
       ),
       textAlign: TextAlign.center,
       keyboardType: TextInputType.number,
@@ -641,12 +650,15 @@ class _FrequencyInput extends StatelessWidget {
         if (v != null && v.trim().isNotEmpty) {
           final numero = int.tryParse(v.trim());
           if (numero == null || numero <= 0) {
-            return 'X'; // Messaggio brevissimo per non rompere la UI
+            // Restituiamo una stringa non vuota (ma invisibile)
+            // per attivare lo stato di errore del campo, che mostrerà il bordo rosso.
+            return ' ';
           }
         }
-        return null;
+        return null; // Nessun errore, il campo è valido.
       },
       textInputAction: TextInputAction.next,
     );
   }
+
 }
