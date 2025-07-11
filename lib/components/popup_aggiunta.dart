@@ -10,28 +10,40 @@ class PopupAggiunta extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Aggiungi Nuova Pianta'),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.of(context).pop(),
+    return Column(
+      children: [
+        const SizedBox(height: 50), // Spessore per far partire lo Scaffold più in basso
+        Expanded(
+          child: Scaffold(
+            appBar: AppBar(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              automaticallyImplyLeading: false,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.black),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            body: SafeArea(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                ),
+                child: PiantaForm(
+                  onSave: (piantaDaAggiungere) {
+                    ref.read(pianteProvider.notifier).aggiungiPianta(piantaDaAggiungere);
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ),
+            ),
           ),
-        ],
-      ),
-      body: PiantaForm(
-        onSave: (piantaDaAggiungere) {
-          // Usa ref.read per chiamare il metodo aggiungiPianta sul notifier.
-          // Questo aggiornerà lo stato e tutte le schermate in ascolto (es. PianteListView)
-          // si aggiorneranno automaticamente.
-          ref.read(pianteProvider.notifier).aggiungiPianta(piantaDaAggiungere);
-
-          // Chiude il popup
-          Navigator.of(context).pop();
-        },
-      ),
+        ),
+      ],
     );
   }
 }
