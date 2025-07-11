@@ -11,7 +11,6 @@ class PlantPieChart extends StatefulWidget {
   final Map<String, int> conteggioCategorie;
 
   /// Costruttore del grafico a torta
-  /// @param conteggioCategorie Mappa con le categorie e i relativi conteggi
   const PlantPieChart({super.key, required this.conteggioCategorie});
 
   @override
@@ -19,12 +18,11 @@ class PlantPieChart extends StatefulWidget {
 }
 
 /// Stato interno del grafico a torta.
-/// Gestisce l'interazione dell'utente e l'aggiornamento dell'aspetto del grafico.
 class _PlantPieChartState extends State<PlantPieChart> {
   /// Indice della sezione attualmente toccata dall'utente nel grafico.
   /// Utilizzato per evidenziare la sezione selezionata.
-  /// -1 indica che nessuna sezione è toccata.
-  int touchedIndex = -1;
+  
+  int touchedIndex = -1;  /// -1 indica che nessuna sezione è toccata.
 
   /// Costruisce l'interfaccia utente del grafico a torta
   @override
@@ -51,9 +49,9 @@ class _PlantPieChartState extends State<PlantPieChart> {
       // Layout orizzontale: grafico e legenda affiancati per sfruttare lo spazio
       return Row(
         children: [
-          // Grafico a torta (occupa 2/5 dello spazio)
+          // Grafico a torta 
           Expanded(
-            flex: 2,
+            flex: 2, // Occupa 2/5 dello spazio
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: PieChart(
@@ -65,9 +63,9 @@ class _PlantPieChartState extends State<PlantPieChart> {
               ),
             ),
           ),
-          // Legenda (occupa 3/5 dello spazio)
+          // Legenda 
           Expanded(
-            flex: 3,
+            flex: 3, // Occupa 3/5 dello spazio
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: _buildLegenda(widget.conteggioCategorie),
@@ -111,11 +109,6 @@ class _PlantPieChartState extends State<PlantPieChart> {
   }
 
   /// Genera le sezioni del grafico a torta in base ai dati delle categorie.
-  /// Ogni sezione rappresenta una categoria con un colore distinto e un raggio personalizzato.
-  /// Le sezioni toccate dall'utente vengono evidenziate con un raggio maggiore.
-  ///
-  /// @param conteggioCategorie Mappa delle categorie e del numero di piante per ciascuna categoria.
-  /// @return Lista di [PieChartSectionData] da visualizzare nel grafico.
   List<PieChartSectionData> _showingSections(
     Map<String, int> conteggioCategorie,
   ) {
@@ -133,7 +126,7 @@ class _PlantPieChartState extends State<PlantPieChart> {
         PieChartSectionData(
           color: colore,
           value: entry.value.toDouble(),
-          title: '', // Non mostra testo sulle sezioni
+          title: '',
           radius: isTouched ? 80 : 70, // Raggio maggiore se toccata
         ),
       );
@@ -143,11 +136,6 @@ class _PlantPieChartState extends State<PlantPieChart> {
   }
 
   /// Costruisce la legenda che mostra le categorie e le relative percentuali.
-  /// Ogni voce della legenda include un quadrato colorato, il nome della categoria
-  /// e la percentuale corrispondente rispetto al totale.
-  ///
-  /// @param conteggioCategorie Mappa delle categorie e del numero di piante per ciascuna categoria.
-  /// @return Widget [Wrap] contenente la legenda colorata con testo e percentuali.
   Widget _buildLegenda(Map<String, int> conteggioCategorie) {
     // Calcola il totale delle piante per calcolare le percentuali
     final totale = conteggioCategorie.values.fold<int>(0, (a, b) => a + b);

@@ -8,7 +8,7 @@ import '../../providers/promemoria_provider.dart';
 import '../../providers/specie_provider.dart';
 import 'piante_detail_view.dart';
 
-/// Schermata dashboard che ora è un "Consumer" reattivo ai dati globali.
+/// Schermata dashboard "Consumer" reattivo ai dati globali.
 class PianteDashboardView extends ConsumerWidget {
   const PianteDashboardView({super.key});
 

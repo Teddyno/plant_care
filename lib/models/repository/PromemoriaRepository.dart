@@ -5,18 +5,17 @@ import '../PromemoriaModel.dart';
 class PromemoriaRepository {
   final dbHelper = DatabaseHelper.instance;
 
-  /// Questo è il metodo principale che la UI chiamerà.
-  /// Contiene tutta la logica per calcolare e restituire i promemoria imminenti.
+
+  /// logica per calcolare e restituire i promemoria imminenti.
   Future<List<Promemoria>> getPromemoriaImminenti() async {
     final List<Promemoria> promemoriaFinali = [];
 
-    // 1. Recupero tutte le piante dal database.
-    // In un'app reale, useresti un PiantaRepository per questo.
+    // Recupero tutte le piante dal database.
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('piante');
     final List<Pianta> tutteLePiante = List.generate(maps.length, (i) => Pianta.fromMap(maps[i]));
 
-    // 2. Per ogni pianta, calcolo le prossime scadenze delle attività.
+    // Per ogni pianta, calcolo le prossime scadenze delle attività.
     for (final pianta in tutteLePiante) {
 
       // --- Calcolo scadenza INNAFFIATURA ---
@@ -50,17 +49,17 @@ class PromemoriaRepository {
       }
     }
 
-    // 3. Filtro i risultati per tenere solo quelli "imminenti" (es. nei prossimi 7 giorni)
+    // Filtro i risultati per tenere solo quelli "imminenti" (es. nei prossimi 7 giorni)
     final oggi = DateTime.now();
     final promemoriaImminenti = promemoriaFinali.where((p) {
       return p.dataScadenza.isAfter(oggi.subtract(const Duration(days: 1))) && p.dataScadenza.isBefore(oggi.add(const Duration(days: 7)));
     }).toList();
 
 
-    // 4. Ordino i promemoria dal più urgente al meno urgente.
+    // Ordino i promemoria dal più urgente al meno urgente.
     promemoriaImminenti.sort((a, b) => a.dataScadenza.compareTo(b.dataScadenza));
 
-    // 5. Restituisco la lista pronta per la UI.
+    // Restituisco la lista pronta per la UI.
     return promemoriaImminenti;
   }
 }

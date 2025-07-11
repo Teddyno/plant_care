@@ -127,14 +127,7 @@ class DatabaseHelper {
   }
 
   /// Inizializza il database con categorie e specie di default.
-  /// 
-  /// Questo metodo viene chiamato solo quando il database viene creato
-  /// per la prima volta. Aggiunge una categoria e una specie di esempio
-  /// per permettere agli utenti di iniziare subito a usare l'app.
-  /// 
-  /// GESTIONE ERRORI:
-  /// - Try-catch per catturare errori di inserimento
-  /// - Log degli errori senza interrompere l'inizializzazione
+  /// Questo metodo viene chiamato solo se il database è vuoto.
   Future<void> _inizializzaDatiDefault(Database db) async {
     try {
       // Inserisce categoria di default
@@ -444,7 +437,6 @@ class DatabaseHelper {
   }
 
   /// Elimina il database e lo ricrea.
-  /// ATTENZIONE: Questo metodo elimina tutti i dati!
   Future<void> resetDatabase() async {
     final db = await database;
     await db.close();
@@ -458,12 +450,6 @@ class DatabaseHelper {
   /// aggiunge automaticamente una categoria e una specie di default per permettere
   /// agli utenti di iniziare subito a usare l'app.
   /// 
-  /// UTILIZZO:
-  /// - Chiamato all'avvio dell'app per assicurarsi che ci siano sempre dati disponibili
-  /// - Non interferisce con dati esistenti
-  /// - Aggiunge solo se il database è completamente vuoto
-  /// 
-  /// RITORNO: Future<void> - Completa quando l'inizializzazione è finita
   Future<void> inizializzaSeVuoto() async {
     try {
       final db = await database;

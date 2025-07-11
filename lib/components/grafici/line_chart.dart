@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-/// Widget che visualizza un grafico a barre per rappresentare dati numerici relativi alle piante.
-/// Utilizzato principalmente per mostrare statistiche come attività di cura mensili,
-/// distribuzione delle piante per categoria, ecc.
-/// Ogni barra rappresenta un valore associato a un'etichetta, con tooltip interattivo al tocco.
+/// Widget che visualizza un grafico a barre per rappresentare dati numerici 
+/// relativi alle attività effettuate sulle piante.
 class PlantBarChart extends StatefulWidget {
   /// Etichette per l'asse X del grafico (es. mesi, categorie, ecc.)
   final List<String> labels;
@@ -13,8 +11,6 @@ class PlantBarChart extends StatefulWidget {
   final List<double> values;
 
   /// Costruttore del grafico a barre
-  /// @param labels Lista delle etichette per l'asse X
-  /// @param values Lista dei valori numerici corrispondenti
   const PlantBarChart({
     super.key,
     required this.labels,
@@ -26,18 +22,15 @@ class PlantBarChart extends StatefulWidget {
 }
 
 /// Stato interno del grafico a barre.
-/// Gestisce l'interazione dell'utente e l'aggiornamento dell'aspetto del grafico.
 class _PlantBarChartState extends State<PlantBarChart> {
   /// Indice della barra attualmente toccata dall'utente.
   /// Utilizzato per evidenziare la barra selezionata e mostrare il tooltip.
-  /// 
-  /// -1 indica che nessuna barra è toccata.
-  int touchedIndex = -1;
+  
+  int touchedIndex = -1; /// -1 indica che nessuna barra è toccata.
 
   /// Costruisce l'interfaccia utente del grafico a barre
   @override
   Widget build(BuildContext context) {
-    /// @return Un widget [SizedBox] contenente il grafico a barre con tooltip e colori dinamici.
     return SizedBox(
       height: 250,
       child: Padding(

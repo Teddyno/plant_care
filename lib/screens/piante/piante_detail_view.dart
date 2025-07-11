@@ -10,7 +10,7 @@ import '../../providers/piante_provider.dart';
 
 /// Schermata che mostra i dettagli di una pianta specifica.
 /// è un ConsumerStatefulWidget per interagire con i provider.
-class PianteDetailView extends ConsumerStatefulWidget { // MODIFICATO
+class PianteDetailView extends ConsumerStatefulWidget { 
   final Pianta pianta;
   const PianteDetailView({super.key, required this.pianta});
 

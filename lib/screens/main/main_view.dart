@@ -3,15 +3,15 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // NUOVO: Importa Riverpod
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../piante/piante_dashboard_view.dart';
 import '../piante/piante_list_view.dart';
 import '../analisi/analisi_view.dart';
 import '../../components/popup_aggiunta.dart';
 
 /// Schermata principale dell'applicazione che gestisce la navigazione.
-/// Ora è un ConsumerStatefulWidget per interagire con i provider.
-class MainView extends ConsumerStatefulWidget { // MODIFICATO: Da StatefulWidget
+/// è un ConsumerStatefulWidget per interagire con i provider.
+class MainView extends ConsumerStatefulWidget { 
   const MainView({super.key});
 
   @override

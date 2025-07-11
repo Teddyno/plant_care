@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // NUOVO: Importa Riverpod
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/PiantaModel.dart';
-import '../providers/piante_provider.dart'; // NUOVO: Importa il provider
+import '../providers/piante_provider.dart';
 import 'PiantaForm.dart';
 
 /// Popup che ospita il form per aggiungere una pianta.
-class PopupAggiunta extends ConsumerWidget { // MODIFICATO: Da StatefulWidget
+class PopupAggiunta extends ConsumerWidget { 
   const PopupAggiunta({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) { // NUOVO: Aggiunto WidgetRef ref
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Aggiungi Nuova Pianta'),

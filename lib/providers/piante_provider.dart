@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/PiantaModel.dart';
 import '../models/repository/PianteRepository.dart';
 
-// 1. MODIFICA: Aggiungiamo la lista delle piante recenti allo stato.
+// Aggiungiamo la lista delle piante recenti allo stato.
 class PianteState {
   final List<Pianta> piante;
   final List<Pianta> pianteRecenti;
@@ -28,7 +28,7 @@ class PianteState {
   }
 }
 
-// 2. MODIFICA: Il Notifier ora calcola e imposta entrambe le liste.
+// Il Notifier calcola e imposta entrambe le liste.
 class PianteNotifier extends StateNotifier<PianteState> {
   final PianteRepository _pianteRepository = PianteRepository();
 

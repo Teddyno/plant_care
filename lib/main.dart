@@ -17,7 +17,6 @@ void main() async {
   }
 
   // Avvia l'applicazione avvolgendo MyApp con ProviderScope.
-  // Questo è il passaggio fondamentale che risolve l'errore.
   runApp(
     const ProviderScope(
       child: MyApp(),

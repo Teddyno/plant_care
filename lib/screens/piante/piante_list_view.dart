@@ -91,7 +91,7 @@ class PianteListView extends ConsumerWidget {
                   fit: BoxFit.cover,
                 )
                     : Image.asset(
-                  'assets/icon.png', // Assicurati di avere questa immagine
+                  'assets/icon.png',
                   width: 56,
                   height: 56,
                   fit: BoxFit.cover,
