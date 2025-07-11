@@ -35,6 +35,193 @@ class _PianteDetailViewState extends ConsumerState<PianteDetailView> {
     _caricaDati();
   }
 
+  @override
+  Widget build(BuildContext context) {
+
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Caricamento...')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            title: Text(_pianta.nome),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            actions: [
+              IconButton(icon: const Icon(Icons.edit, color: Colors.white), onPressed: _modificaPianta, tooltip: 'Modifica pianta'),
+            ],
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  child: Material(
+                    elevation: 4,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Row(
+                          children: [
+                            _pianta.foto != null
+                                ? ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Image.memory(_pianta.foto!, width: 60, height: 60, fit: BoxFit.cover),
+                            )
+                                : Image.asset('assets/icon.png', width: 60, height: 60, errorBuilder: (context, error, stackTrace) => const Icon(Icons.local_florist, size: 60)),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(_pianta.nome, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                                  Text(_specie?.nome ?? 'Specie sconosciuta', style: TextStyle(color: Colors.grey[600], fontSize: 16)),
+                                  Text('Acquisita il: ${_formattaData(_pianta.dataAcquisto)}', style: TextStyle(color: Colors.grey[500], fontSize: 14)),
+                                  Text('Innaffiatura: ogni ${_pianta.frequenzaInnaffiatura} giorni', style: TextStyle(color: Colors.grey[700], fontSize: 14)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  child: Material(
+                    elevation: 4,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Attività di Cura', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                                IconButton(
+                                  icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary, size: 28),
+                                  onPressed: _aggiungiAttivita,
+                                  tooltip: 'Aggiungi attività',
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            _attivita.isEmpty
+                                ? Center(
+                              child: Column(
+                                children: [
+                                  Icon(Icons.task_outlined, size: 60, color: Colors.grey[400]),
+                                  const SizedBox(height: 16),
+                                  Text('Nessuna attività registrata', style: TextStyle(fontSize: 16, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+                                  const SizedBox(height: 8),
+                                  Text('Aggiungi la tua prima attività di cura!', style: TextStyle(fontSize: 14, color: Colors.grey[500])),
+                                ],
+                              ),
+                            )
+                                : ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _attivita.length,
+                              itemBuilder: (context, index) {
+                                final a = _attivita[index];
+                                final tipo = a.tipoAttivita;
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.grey.withOpacity(0.15), width: 1),
+                                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 3, offset: const Offset(0, 1))],
+                                  ),
+                                  child: ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    leading: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(color: _getActivityColor(tipo).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                      child: Icon(_getActivityIcon(tipo), color: _getActivityColor(tipo), size: 20),
+                                    ),
+                                    title: Text(tipo.capitalize(), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Colors.black87), overflow: TextOverflow.ellipsis, maxLines: 1),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(icon: const Icon(Icons.edit, color: Colors.green), onPressed: () => _modificaAttivita(a), tooltip: 'Modifica'),
+                                        IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _eliminaAttivita(a), tooltip: 'Elimina'),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  child: Material(
+                    elevation: 4,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.note_alt, color: Theme.of(context).colorScheme.primary, size: 28),
+                                const SizedBox(width: 12),
+                                Text('Note personali', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            (_pianta.note != null && _pianta.note!.isNotEmpty)
+                                ? Text(
+                              _pianta.note!,
+                              style: TextStyle(fontSize: 16, color: Colors.grey[800], height: 1.5),
+                            )
+                                : Text(
+                              'Nessuna nota personale.',
+                              style: TextStyle(fontSize: 16, color: Colors.grey[500], fontStyle: FontStyle.italic),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // metodi di utilità
+
   Future<void> _caricaDati() async {
     setState(() => _isLoading = true);
     try {
@@ -109,7 +296,7 @@ class _PianteDetailViewState extends ConsumerState<PianteDetailView> {
                 body: PiantaForm(
                   piantaIniziale: _pianta,
                   onSave: (piantaDaAggiornare) async {
-                    // MODIFICATO: Ora chiama il notifier per aggiornare lo stato globale
+                    // chiama il notifier per aggiornare lo stato globale
                     await ref.read(pianteProvider.notifier).aggiornaPianta(piantaDaAggiornare);
                     if (mounted) {
                       Navigator.of(context).pop(piantaDaAggiornare);
@@ -301,189 +488,6 @@ class _PianteDetailViewState extends ConsumerState<PianteDetailView> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Caricamento...')),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            title: Text(_pianta.nome),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            actions: [
-              IconButton(icon: const Icon(Icons.edit, color: Colors.white), onPressed: _modificaPianta, tooltip: 'Modifica pianta'),
-            ],
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                Container(
-                  margin: const EdgeInsets.only(bottom: 24),
-                  child: Material(
-                    elevation: 4,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          children: [
-                            _pianta.foto != null
-                                ? ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0),
-                              child: Image.memory(_pianta.foto!, width: 60, height: 60, fit: BoxFit.cover),
-                            )
-                                : Image.asset('assets/icon.png', width: 60, height: 60, errorBuilder: (context, error, stackTrace) => const Icon(Icons.local_florist, size: 60)),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(_pianta.nome, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                                  Text(_specie?.nome ?? 'Specie sconosciuta', style: TextStyle(color: Colors.grey[600], fontSize: 16)),
-                                  Text('Acquisita il: ${_formattaData(_pianta.dataAcquisto)}', style: TextStyle(color: Colors.grey[500], fontSize: 14)),
-                                  Text('Innaffiatura: ogni ${_pianta.frequenzaInnaffiatura} giorni', style: TextStyle(color: Colors.grey[700], fontSize: 14)),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                Container(
-                  margin: const EdgeInsets.only(bottom: 24),
-                  child: Material(
-                    elevation: 4,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Attività di Cura', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                                IconButton(
-                                  icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary, size: 28),
-                                  onPressed: _aggiungiAttivita,
-                                  tooltip: 'Aggiungi attività',
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            _attivita.isEmpty
-                                ? Center(
-                              child: Column(
-                                children: [
-                                  Icon(Icons.task_outlined, size: 60, color: Colors.grey[400]),
-                                  const SizedBox(height: 16),
-                                  Text('Nessuna attività registrata', style: TextStyle(fontSize: 16, color: Colors.grey[600], fontWeight: FontWeight.w500)),
-                                  const SizedBox(height: 8),
-                                  Text('Aggiungi la tua prima attività di cura!', style: TextStyle(fontSize: 14, color: Colors.grey[500])),
-                                ],
-                              ),
-                            )
-                                : ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: _attivita.length,
-                              itemBuilder: (context, index) {
-                                final a = _attivita[index];
-                                final tipo = a.tipoAttivita;
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.grey.withOpacity(0.15), width: 1),
-                                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 3, offset: const Offset(0, 1))],
-                                  ),
-                                  child: ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                    leading: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(color: _getActivityColor(tipo).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                                      child: Icon(_getActivityIcon(tipo), color: _getActivityColor(tipo), size: 20),
-                                    ),
-                                    title: Text(tipo.capitalize(), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Colors.black87), overflow: TextOverflow.ellipsis, maxLines: 1),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(icon: const Icon(Icons.edit, color: Colors.green), onPressed: () => _modificaAttivita(a), tooltip: 'Modifica'),
-                                        IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _eliminaAttivita(a), tooltip: 'Elimina'),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                Container(
-                  margin: const EdgeInsets.only(bottom: 24),
-                  child: Material(
-                    elevation: 4,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.note_alt, color: Theme.of(context).colorScheme.primary, size: 28),
-                                const SizedBox(width: 12),
-                                Text('Note personali', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            (_pianta.note != null && _pianta.note!.isNotEmpty)
-                                ? Text(
-                              _pianta.note!,
-                              style: TextStyle(fontSize: 16, color: Colors.grey[800], height: 1.5),
-                            )
-                                : Text(
-                              'Nessuna nota personale.',
-                              style: TextStyle(fontSize: 16, color: Colors.grey[500], fontStyle: FontStyle.italic),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 extension StringExtension on String {

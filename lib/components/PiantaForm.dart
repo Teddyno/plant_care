@@ -83,6 +83,225 @@ class _PiantaFormState extends State<PiantaForm> {
     super.dispose();
   }
 
+  @override
+  Widget build(BuildContext context) {  
+    final inputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12.0),
+      borderSide: BorderSide(color: Colors.grey.shade400),
+    );
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              widget.piantaIniziale == null ? 'Nuova Pianta' : 'Modifica Pianta',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            TextFormField(
+              controller: _nomeController,
+              decoration: InputDecoration(labelText: 'Nome pianta *', prefixIcon: const Icon(Icons.grass), border: inputBorder),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Inserisci un nome' : null,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<Categoria>(
+                    value: _categoriaSelezionata,
+                    decoration: InputDecoration(labelText: 'Categoria *', prefixIcon: const Icon(Icons.category_outlined), border: inputBorder),
+                    items: _categorie.map((c) => DropdownMenuItem(value: c, child: Text(c.nome))).toList(),
+                    onChanged: (categoria) {
+                      if (categoria != null) {
+                        setState(() {
+                          _categoriaSelezionata = categoria;
+                          _specieSelezionata = null;
+                          if (_creandoNuovaSpecie) _creandoNuovaSpecie = false;
+                        });
+                        _caricaSpecie(categoria);
+                      }
+                    },
+                    validator: (v) => v == null ? 'Seleziona una categoria' : null,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(_creandoNuovaCategoria ? Icons.close : Icons.add),
+                  tooltip: _creandoNuovaCategoria ? 'Annulla' : 'Nuova categoria',
+                  onPressed: () => setState(() => _creandoNuovaCategoria = !_creandoNuovaCategoria),
+                ),
+              ],
+            ),
+
+            if (_creandoNuovaCategoria)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _nuovaCategoriaController,
+                        decoration: const InputDecoration(labelText: 'Nome nuova categoria', border: OutlineInputBorder()),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: _creaNuovaCategoria,
+                      child: const Text('Crea'),
+                    ),
+                  ],
+                ),
+              ),
+
+            const SizedBox(height: 16),
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<Specie>(
+                    value: _specieSelezionata,
+                    decoration: InputDecoration(
+                      labelText: 'Specie *',
+                      hintText: _categoriaSelezionata == null ? 'Scegli la categoria' : '',
+                      prefixIcon: const Icon(Icons.spa_outlined),
+                      border: inputBorder,
+                    ),
+                    items: _specie.map((s) => DropdownMenuItem(value: s, child: Text(s.nome))).toList(),
+                    onChanged: (specie) => setState(() => _specieSelezionata = specie),
+                    validator: (v) => v == null ? 'Seleziona una specie' : null,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(_creandoNuovaSpecie ? Icons.close : Icons.add),
+                  tooltip: _creandoNuovaSpecie ? 'Annulla' : 'Nuova specie',
+                  onPressed: _categoriaSelezionata == null
+                      ? null
+                      : () => setState(() => _creandoNuovaSpecie = !_creandoNuovaSpecie),
+                ),
+              ],
+            ),
+
+            if (_creandoNuovaSpecie)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _nuovaSpecieController,
+                        decoration: const InputDecoration(labelText: 'Nome nuova specie', border: OutlineInputBorder()),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: _creaNuovaSpecie,
+                      child: const Text('Crea'),
+                    ),
+                  ],
+                ),
+              ),
+
+            const SizedBox(height: 16),
+
+            TextFormField(
+              controller: _dataAcquistoController,
+              readOnly: true,
+              decoration: InputDecoration(labelText: 'Data acquisto *', prefixIcon: const Icon(Icons.calendar_today_outlined), border: inputBorder),
+              onTap: () async {
+                final picked = await showDatePicker(context: context, initialDate: _dataAcquisto ?? DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime.now());
+                if (picked != null && mounted) {
+                  setState(() {
+                    _dataAcquisto = picked;
+                    _dataAcquistoController.text = DateFormat('dd/MM/yyyy').format(picked);
+                  });
+                }
+              },
+              validator: (v) => _dataAcquisto == null ? 'Seleziona una data' : null,
+            ),
+            const SizedBox(height: 24),
+
+            Text('Frequenze di cura (giorni)', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(child: _FrequencyInput(controller: _frequenzaInnaffiaturaController, icon: Icons.water_drop_outlined, hintText: 'Acqua')),
+                const SizedBox(width: 12),
+                Expanded(child: _FrequencyInput(controller: _frequenzaPotaturaController, icon: Icons.content_cut_outlined, hintText: 'Potatura')),
+                const SizedBox(width: 12),
+                Expanded(child: _FrequencyInput(controller: _frequenzaRinvasoController, icon: Icons.yard_outlined, hintText: 'Rinvaso')),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            TextFormField(
+              controller: _noteController,
+              decoration: InputDecoration(labelText: 'Note (opzionale)', prefixIcon: const Icon(Icons.notes_outlined), border: inputBorder),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+
+            Row(
+              children: [
+                Container(
+                  width: 80, height: 80,
+                  decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12), color: Colors.grey.shade100),
+                  child: _buildImagePreview(),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.photo_camera_outlined),
+                    label: Text(_fotoEsistente != null ? 'Cambia foto' : 'Scegli foto'),
+                    onPressed: () async {
+                      final picked = await _picker.pickImage(source: ImageSource.gallery);
+                      if (picked != null) {
+                        setState(() => _foto = File(picked.path));
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+
+            ElevatedButton.icon(
+              icon: const Icon(Icons.save),
+              label: const Text('Salva Pianta'),
+              onPressed: _salva,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImagePreview() {
+    if (_foto != null) {
+      return ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.file(_foto!, fit: BoxFit.cover, width: 80, height: 80));
+    }
+    if (_fotoEsistente != null) {
+      return ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.memory(_fotoEsistente!, fit: BoxFit.cover, width: 80, height: 80));
+    }
+    return const Icon(Icons.image_outlined, size: 40, color: Colors.grey);
+  }
+
+  // metodi utili
+
   Future<void> _caricaDatiIniziali(Pianta pianta) async {
     _nomeController.text = pianta.nome;
     _frequenzaInnaffiaturaController.text = pianta.frequenzaInnaffiatura.toString();
@@ -228,222 +447,7 @@ class _PiantaFormState extends State<PiantaForm> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final inputBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12.0),
-      borderSide: BorderSide(color: Colors.grey.shade400),
-    );
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              widget.piantaIniziale == null ? 'Nuova Pianta' : 'Modifica Pianta',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            TextFormField(
-              controller: _nomeController,
-              decoration: InputDecoration(labelText: 'Nome pianta *', prefixIcon: const Icon(Icons.grass), border: inputBorder),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Inserisci un nome' : null,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<Categoria>(
-                    value: _categoriaSelezionata,
-                    decoration: InputDecoration(labelText: 'Categoria *', prefixIcon: const Icon(Icons.category_outlined), border: inputBorder),
-                    items: _categorie.map((c) => DropdownMenuItem(value: c, child: Text(c.nome))).toList(),
-                    onChanged: (categoria) {
-                      if (categoria != null) {
-                        setState(() {
-                          _categoriaSelezionata = categoria;
-                          _specieSelezionata = null;
-                          if (_creandoNuovaSpecie) _creandoNuovaSpecie = false;
-                        });
-                        _caricaSpecie(categoria);
-                      }
-                    },
-                    validator: (v) => v == null ? 'Seleziona una categoria' : null,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(_creandoNuovaCategoria ? Icons.close : Icons.add),
-                  tooltip: _creandoNuovaCategoria ? 'Annulla' : 'Nuova categoria',
-                  onPressed: () => setState(() => _creandoNuovaCategoria = !_creandoNuovaCategoria),
-                ),
-              ],
-            ),
-
-            if (_creandoNuovaCategoria)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _nuovaCategoriaController,
-                        decoration: const InputDecoration(labelText: 'Nome nuova categoria', border: OutlineInputBorder()),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: _creaNuovaCategoria,
-                      child: const Text('Crea'),
-                    ),
-                  ],
-                ),
-              ),
-
-            const SizedBox(height: 16),
-
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<Specie>(
-                    value: _specieSelezionata,
-                    decoration: InputDecoration(
-                      labelText: 'Specie *',
-                      hintText: _categoriaSelezionata == null ? 'Scegli prima una categoria' : '',
-                      prefixIcon: const Icon(Icons.spa_outlined),
-                      border: inputBorder,
-                    ),
-                    items: _specie.map((s) => DropdownMenuItem(value: s, child: Text(s.nome))).toList(),
-                    onChanged: (specie) => setState(() => _specieSelezionata = specie),
-                    validator: (v) => v == null ? 'Seleziona una specie' : null,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(_creandoNuovaSpecie ? Icons.close : Icons.add),
-                  tooltip: _creandoNuovaSpecie ? 'Annulla' : 'Nuova specie',
-                  onPressed: _categoriaSelezionata == null
-                      ? null
-                      : () => setState(() => _creandoNuovaSpecie = !_creandoNuovaSpecie),
-                ),
-              ],
-            ),
-
-            if (_creandoNuovaSpecie)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _nuovaSpecieController,
-                        decoration: const InputDecoration(labelText: 'Nome nuova specie', border: OutlineInputBorder()),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: _creaNuovaSpecie,
-                      child: const Text('Crea'),
-                    ),
-                  ],
-                ),
-              ),
-
-            const SizedBox(height: 16),
-
-            TextFormField(
-              controller: _dataAcquistoController,
-              readOnly: true,
-              decoration: InputDecoration(labelText: 'Data acquisto *', prefixIcon: const Icon(Icons.calendar_today_outlined), border: inputBorder),
-              onTap: () async {
-                final picked = await showDatePicker(context: context, initialDate: _dataAcquisto ?? DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime.now());
-                if (picked != null && mounted) {
-                  setState(() {
-                    _dataAcquisto = picked;
-                    _dataAcquistoController.text = DateFormat('dd/MM/yyyy').format(picked);
-                  });
-                }
-              },
-              validator: (v) => _dataAcquisto == null ? 'Seleziona una data' : null,
-            ),
-            const SizedBox(height: 24),
-
-            Text('Frequenze di cura (giorni)', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(child: _FrequencyInput(controller: _frequenzaInnaffiaturaController, icon: Icons.water_drop_outlined, hintText: 'Acqua')),
-                const SizedBox(width: 12),
-                Expanded(child: _FrequencyInput(controller: _frequenzaPotaturaController, icon: Icons.content_cut_outlined, hintText: 'Potatura')),
-                const SizedBox(width: 12),
-                Expanded(child: _FrequencyInput(controller: _frequenzaRinvasoController, icon: Icons.yard_outlined, hintText: 'Rinvaso')),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            TextFormField(
-              controller: _noteController,
-              decoration: InputDecoration(labelText: 'Note (opzionale)', prefixIcon: const Icon(Icons.notes_outlined), border: inputBorder),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-
-            Row(
-              children: [
-                Container(
-                  width: 80, height: 80,
-                  decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12), color: Colors.grey.shade100),
-                  child: _buildImagePreview(),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.photo_camera_outlined),
-                    label: Text(_fotoEsistente != null ? 'Cambia foto' : 'Scegli foto'),
-                    onPressed: () async {
-                      final picked = await _picker.pickImage(source: ImageSource.gallery);
-                      if (picked != null) {
-                        setState(() => _foto = File(picked.path));
-                      }
-                    },
-                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-
-            ElevatedButton.icon(
-              icon: const Icon(Icons.save),
-              label: const Text('Salva Pianta'),
-              onPressed: _salva,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImagePreview() {
-    if (_foto != null) {
-      return ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.file(_foto!, fit: BoxFit.cover, width: 80, height: 80));
-    }
-    if (_fotoEsistente != null) {
-      return ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.memory(_fotoEsistente!, fit: BoxFit.cover, width: 80, height: 80));
-    }
-    return const Icon(Icons.image_outlined, size: 40, color: Colors.grey);
-  }
 }
 
 class _FrequencyInput extends StatelessWidget {

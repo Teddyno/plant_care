@@ -155,7 +155,7 @@ class PianteDashboardView extends ConsumerWidget {
                         style: TextStyle(color: isCompletata ? Colors.grey : (isScadutoOggi ? Colors.red.shade800 : Colors.grey.shade600), decoration: isCompletata ? TextDecoration.lineThrough : TextDecoration.none),
                       ),
                       isThreeLine: true,
-                      // NUOVA CONDIZIONE: Mostra il pulsante o la spunta solo se l'attività è di oggi o passata
+                      // Mostra il pulsante o la spunta solo se l'attività è di oggi o passata
                       trailing: isCompletata
                           ? const Icon(Icons.check_circle, color: Colors.green, size: 30)
                           : (isScadutoOggi
@@ -183,6 +183,7 @@ class PianteDashboardView extends ConsumerWidget {
   }
 
   // Metodi helper
+  
   Specie? _getSpecieById(int idSpecie, List<Specie> tutteLeSpecie) {
     try {
       return tutteLeSpecie.firstWhere((specie) => specie.id == idSpecie);
