@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:typed_data';
@@ -7,10 +8,12 @@ import 'package:intl/intl.dart';
 import '../models/PiantaModel.dart';
 import '../models/SpecieModel.dart';
 import '../models/CategoriaModel.dart';
-import '../models/repository/SpecieRepository.dart';
-import '../models/repository/CategorieRepository.dart';
+import '../providers/piante_provider.dart';
+import '../providers/categorie_provider.dart';
+import '../providers/specie_provider.dart';
 
-class PiantaForm extends StatefulWidget {
+/// Form per aggiungere o modificare una pianta, ora completamente integrato con Riverpod.
+class PiantaForm extends ConsumerStatefulWidget {
   final Pianta? piantaIniziale;
   final Function(Pianta pianta) onSave;
 
@@ -21,10 +24,10 @@ class PiantaForm extends StatefulWidget {
   });
 
   @override
-  State<PiantaForm> createState() => _PiantaFormState();
+  ConsumerState<PiantaForm> createState() => _PiantaFormState();
 }
 
-class _PiantaFormState extends State<PiantaForm> {
+class _PiantaFormState extends ConsumerState<PiantaForm> {
   final _formKey = GlobalKey<FormState>();
 
   // Controller
@@ -42,36 +45,25 @@ class _PiantaFormState extends State<PiantaForm> {
   File? _foto;
   Uint8List? _fotoEsistente;
   final ImagePicker _picker = ImagePicker();
-  List<Categoria> _categorie = [];
-  List<Specie> _specie = [];
-  Categoria? _categoriaSelezionata;
-  Specie? _specieSelezionata;
+  int? _categoriaSelezionataId;
+  int? _specieSelezionataId;
   String _statoSelezionato = 'Sana';
 
   // Flag per la UI
   bool _creandoNuovaCategoria = false;
   bool _creandoNuovaSpecie = false;
 
-  // Repository
-  final SpecieRepository _specieRepository = SpecieRepository.instance;
-  final CategorieRepository _categorieRepository = CategorieRepository.instance;
-
-  static const List<String> _statiPossibili = [
-    'Sana', 'Malata', 'In crescita', 'In fiore', 'Dormiente', 'Bisognosa di cure'
-  ];
-
   @override
   void initState() {
     super.initState();
     if (widget.piantaIniziale != null) {
       _caricaDatiIniziali(widget.piantaIniziale!);
-    } else {
-      _caricaCategorie();
     }
   }
 
   @override
   void dispose() {
+    // Dispose di tutti i controller
     _nomeController.dispose();
     _frequenzaInnaffiaturaController.dispose();
     _frequenzaPotaturaController.dispose();
@@ -84,11 +76,15 @@ class _PiantaFormState extends State<PiantaForm> {
   }
 
   @override
-  Widget build(BuildContext context) {  
+  Widget build(BuildContext context) {
     final inputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(12.0),
       borderSide: BorderSide(color: Colors.grey.shade400),
     );
+
+    // Usa ref.watch per ottenere i dati in modo reattivo
+    final categorieState = ref.watch(tutteLeCategorieProvider);
+    final specieState = ref.watch(tutteLeSpecieProvider);
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -110,25 +106,28 @@ class _PiantaFormState extends State<PiantaForm> {
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Inserisci un nome' : null,
               ),
               const SizedBox(height: 16),
+
+              // Dropdown Categorie (ora basato su Riverpod)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: DropdownButtonFormField<Categoria>(
-                      value: _categoriaSelezionata,
-                      decoration: InputDecoration(labelText: 'Categoria *', prefixIcon: const Icon(Icons.category_outlined), border: inputBorder),
-                      items: _categorie.map((c) => DropdownMenuItem(value: c, child: Text(c.nome))).toList(),
-                      onChanged: (categoria) {
-                        if (categoria != null) {
+                    child: categorieState.when(
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (e, s) => Text('Errore caricamento categorie: $e'),
+                      data: (categorie) => DropdownButtonFormField<int>(
+                        value: _categoriaSelezionataId,
+                        decoration: InputDecoration(labelText: 'Categoria *', prefixIcon: const Icon(Icons.category_outlined), border: inputBorder),
+                        items: categorie.map((c) => DropdownMenuItem(value: c.id, child: Text(c.nome))).toList(),
+                        onChanged: (value) {
                           setState(() {
-                            _categoriaSelezionata = categoria;
-                            _specieSelezionata = null;
+                            _categoriaSelezionataId = value;
+                            _specieSelezionataId = null;
                             if (_creandoNuovaSpecie) _creandoNuovaSpecie = false;
                           });
-                          _caricaSpecie(categoria);
-                        }
-                      },
-                      validator: (v) => v == null ? 'Seleziona una categoria' : null,
+                        },
+                        validator: (v) => v == null ? 'Seleziona una categoria' : null,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -162,28 +161,36 @@ class _PiantaFormState extends State<PiantaForm> {
 
               const SizedBox(height: 16),
 
+              // Dropdown Specie (ora basato su Riverpod)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: DropdownButtonFormField<Specie>(
-                      value: _specieSelezionata,
-                      decoration: InputDecoration(
-                        labelText: 'Specie *',
-                        hintText: _categoriaSelezionata == null ? 'Scegli la categoria' : '',
-                        prefixIcon: const Icon(Icons.spa_outlined),
-                        border: inputBorder,
-                      ),
-                      items: _specie.map((s) => DropdownMenuItem(value: s, child: Text(s.nome))).toList(),
-                      onChanged: (specie) => setState(() => _specieSelezionata = specie),
-                      validator: (v) => v == null ? 'Seleziona una specie' : null,
+                    child: specieState.when(
+                      loading: () => const SizedBox.shrink(),
+                      error: (e, s) => Text('Errore caricamento specie: $e'),
+                      data: (specie) {
+                        final specieFiltrate = specie.where((s) => s.idCategoria == _categoriaSelezionataId).toList();
+                        return DropdownButtonFormField<int>(
+                          value: _specieSelezionataId,
+                          decoration: InputDecoration(
+                            labelText: 'Specie *',
+                            hintText: _categoriaSelezionataId == null ? 'Scegli la categoria' : '',
+                            prefixIcon: const Icon(Icons.spa_outlined),
+                            border: inputBorder,
+                          ),
+                          items: specieFiltrate.map((s) => DropdownMenuItem(value: s.id, child: Text(s.nome))).toList(),
+                          onChanged: (value) => setState(() => _specieSelezionataId = value),
+                          validator: (v) => v == null ? 'Seleziona una specie' : null,
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(width: 8),
                   IconButton(
                     icon: Icon(_creandoNuovaSpecie ? Icons.close : Icons.add),
                     tooltip: _creandoNuovaSpecie ? 'Annulla' : 'Nuova specie',
-                    onPressed: _categoriaSelezionata == null
+                    onPressed: _categoriaSelezionataId == null
                         ? null
                         : () => setState(() => _creandoNuovaSpecie = !_creandoNuovaSpecie),
                   ),
@@ -292,7 +299,8 @@ class _PiantaFormState extends State<PiantaForm> {
     );
   }
 
-  // metodi utili
+  // --- METODI DI LOGICA (ora integrati con Riverpod) ---
+
   Widget _buildImagePreview() {
     if (_foto != null) {
       return ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.file(_foto!, fit: BoxFit.cover, width: 80, height: 80));
@@ -303,7 +311,7 @@ class _PiantaFormState extends State<PiantaForm> {
     return const Icon(Icons.image_outlined, size: 40, color: Colors.grey);
   }
 
-  Future<void> _caricaDatiIniziali(Pianta pianta) async {
+  void _caricaDatiIniziali(Pianta pianta) {
     _nomeController.text = pianta.nome;
     _frequenzaInnaffiaturaController.text = pianta.frequenzaInnaffiatura.toString();
     _frequenzaPotaturaController.text = pianta.frequenzaPotatura.toString();
@@ -313,39 +321,43 @@ class _PiantaFormState extends State<PiantaForm> {
     _dataAcquistoController.text = DateFormat('dd/MM/yyyy').format(pianta.dataAcquisto);
     _statoSelezionato = pianta.stato;
     _fotoEsistente = pianta.foto;
+    _specieSelezionataId = pianta.idSpecie;
 
-    await _caricaTuttiIDatiDropDown();
-
-    _specieSelezionata = _specie.firstWhere((s) => s.id == pianta.idSpecie, orElse: () => _specie.first);
-    final idCategoriaCorrente = _specieSelezionata!.idCategoria;
-    _categoriaSelezionata = _categorie.firstWhere((c) => c.id == idCategoriaCorrente, orElse: () => _categorie.first);
-
-    if (mounted) {
-      setState(() {});
+    final specieList = ref.read(tutteLeSpecieProvider).asData?.value;
+    if (specieList != null) {
+      try {
+        final specieIniziale = specieList.firstWhere((s) => s.id == pianta.idSpecie);
+        _categoriaSelezionataId = specieIniziale.idCategoria;
+      } catch (e) {
+        // La specie potrebbe non essere presente, gestisci il caso
+      }
     }
   }
 
-  Future<void> _caricaTuttiIDatiDropDown() async {
-    final results = await Future.wait([
-      _categorieRepository.getTutteLeCategorie(),
-      _specieRepository.getTutteLeSpecie(),
-    ]);
-    if (mounted) {
-      setState(() {
-        _categorie = results[0] as List<Categoria>;
-        _specie = results[1] as List<Specie>;
-      });
-    }
+  Future<void> _creaNuovaCategoria() async {
+    final nomeCategoria = _nuovaCategoriaController.text.trim();
+    if (nomeCategoria.isEmpty) return;
+
+    await ref.read(tutteLeCategorieProvider.notifier).aggiungiCategoria(nomeCategoria);
+
+    setState(() {
+      _creandoNuovaCategoria = false;
+      _nuovaCategoriaController.clear();
+    });
   }
 
-  Future<void> _caricaCategorie() async {
-    _categorie = await _categorieRepository.getTutteLeCategorie();
-    if (mounted) setState(() {});
-  }
+  Future<void> _creaNuovaSpecie() async {
+    if (_categoriaSelezionataId == null) return;
+    final nomeSpecie = _nuovaSpecieController.text.trim();
+    if (nomeSpecie.isEmpty) return;
 
-  Future<void> _caricaSpecie(Categoria categoria) async {
-    _specie = await _specieRepository.getSpecieByCategoria(categoria.id!);
-    if (mounted) setState(() {});
+    final nuovaSpecie = Specie(nome: nomeSpecie, idCategoria: _categoriaSelezionataId!);
+    await ref.read(tutteLeSpecieProvider.notifier).aggiungiSpecie(nuovaSpecie);
+
+    setState(() {
+      _creandoNuovaSpecie = false;
+      _nuovaSpecieController.clear();
+    });
   }
 
   Future<Uint8List?> _convertiImmagineInBytes(File file) async {
@@ -353,63 +365,6 @@ class _PiantaFormState extends State<PiantaForm> {
       return await file.readAsBytes();
     } catch (e) {
       return null;
-    }
-  }
-
-  Future<void> _creaNuovaCategoria() async {
-    final nomeCategoria = _nuovaCategoriaController.text.trim();
-    if (nomeCategoria.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inserisci un nome per la categoria')));
-      return;
-    }
-
-    try {
-      final nuovaCategoria = Categoria(nome: nomeCategoria);
-      await _categorieRepository.aggiungiCategoria(nuovaCategoria);
-      await _caricaCategorie();
-
-      final categoriaCreata = _categorie.firstWhere((c) => c.nome == nomeCategoria);
-      setState(() {
-        _categoriaSelezionata = categoriaCreata;
-        _creandoNuovaCategoria = false;
-        _nuovaCategoriaController.clear();
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Categoria "$nomeCategoria" creata!'), backgroundColor: Colors.green));
-
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Errore: $e'), backgroundColor: Colors.red));
-    }
-  }
-
-  Future<void> _creaNuovaSpecie() async {
-    if (_categoriaSelezionata == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Seleziona prima una categoria')));
-      return;
-    }
-
-    final nomeSpecie = _nuovaSpecieController.text.trim();
-    if (nomeSpecie.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inserisci un nome per la specie')));
-      return;
-    }
-
-    try {
-      final nuovaSpecie = Specie(nome: nomeSpecie, idCategoria: _categoriaSelezionata!.id!);
-      await _specieRepository.aggiungiSpecie(nuovaSpecie);
-      await _caricaSpecie(_categoriaSelezionata!);
-
-      final specieCreata = _specie.firstWhere((s) => s.nome == nomeSpecie);
-      setState(() {
-        _specieSelezionata = specieCreata;
-        _creandoNuovaSpecie = false;
-        _nuovaSpecieController.clear();
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Specie "$nomeSpecie" creata!'), backgroundColor: Colors.green));
-
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Errore: $e'), backgroundColor: Colors.red));
     }
   }
 
@@ -434,21 +389,15 @@ class _PiantaFormState extends State<PiantaForm> {
         frequenzaRinvaso: int.tryParse(_frequenzaRinvasoController.text.trim()) ?? 365,
         note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
         stato: _statoSelezionato,
-        idSpecie: _specieSelezionata!.id!,
+        idSpecie: _specieSelezionataId!,
       );
 
-      widget.onSave(piantaDaSalvare);
+      await widget.onSave(piantaDaSalvare);
 
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Compila tutti i campi obbligatori')),
-        );
-      }
+      ref.invalidate(tutteLeCategorieProvider);
+      ref.invalidate(tutteLeSpecieProvider);
     }
   }
-
-
 }
 
 class _FrequencyInput extends StatelessWidget {

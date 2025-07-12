@@ -49,7 +49,7 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
       body: TabBarView(
         controller: _tabController,
         children: [
-          // [CORREZIONE] Passa i metodi come callback ai widget figli
+          // Passa i metodi come callback ai widget figli
           _CategorieListView(
             onEdit: (categoria) => _mostraDialogoCategoria(context, ref, categoria: categoria),
             onDelete: (id) => _confermaEliminazione(context, ref, 'categoria', id),
@@ -62,6 +62,8 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        // [SOLUZIONE] Aggiunto un heroTag univoco per risolvere il conflitto.
+        heroTag: 'gestione_categorie_specie_fab',
         onPressed: () {
           if (_tabController.index == 0) {
             _mostraDialogoCategoria(context, ref);
@@ -77,7 +79,6 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
 
   // --- DIALOGHI E FUNZIONI DI UTILITÀ (ora metodi della classe State) ---
 
-  /// Mostra un dialogo per aggiungere o modificare una Categoria.
   void _mostraDialogoCategoria(BuildContext context, WidgetRef ref, {Categoria? categoria}) {
     final isModifica = categoria != null;
     final controller = TextEditingController(text: categoria?.nome ?? '');
@@ -112,7 +113,6 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
     );
   }
 
-  /// Mostra un dialogo per aggiungere o modificare una Specie.
   void _mostraDialogoSpecie(BuildContext context, WidgetRef ref, {int? idCategoria, Specie? specie}) {
     final isModifica = specie != null;
     final nomeController = TextEditingController(text: specie?.nome ?? '');
@@ -172,7 +172,6 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
     );
   }
 
-  /// Mostra un dialogo di conferma prima di un'eliminazione.
   void _confermaEliminazione(BuildContext context, WidgetRef ref, String tipo, int id) {
     showDialog(
       context: context,
@@ -201,7 +200,6 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
 
 /// Widget che mostra la lista delle Categorie.
 class _CategorieListView extends ConsumerWidget {
-  // [CORREZIONE] Aggiunti i callback come parametri
   final Function(Categoria) onEdit;
   final Function(int) onDelete;
 
@@ -215,21 +213,24 @@ class _CategorieListView extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, stack) => Center(child: Text('Errore: $err')),
       data: (categorie) {
-        return ListView.builder(
-          itemCount: categorie.length,
-          itemBuilder: (context, index) {
-            final categoria = categorie[index];
-            return ListTile(
-              title: Text(categoria.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => onEdit(categoria)),
-                  IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => onDelete(categoria.id!)),
-                ],
-              ),
-            );
-          },
+        return RefreshIndicator(
+          onRefresh: () => ref.read(tutteLeCategorieProvider.notifier).caricaCategorie(),
+          child: ListView.builder(
+            itemCount: categorie.length,
+            itemBuilder: (context, index) {
+              final categoria = categorie[index];
+              return ListTile(
+                title: Text(categoria.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => onEdit(categoria)),
+                    IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => onDelete(categoria.id!)),
+                  ],
+                ),
+              );
+            },
+          ),
         );
       },
     );
@@ -238,7 +239,6 @@ class _CategorieListView extends ConsumerWidget {
 
 /// Widget che mostra la lista delle Specie, raggruppate per categoria.
 class _SpecieListView extends ConsumerWidget {
-  // [CORREZIONE] Aggiunti i callback come parametri
   final Function(Specie) onEdit;
   final Function(int) onDelete;
   final Function(int) onAdd;
@@ -259,39 +259,44 @@ class _SpecieListView extends ConsumerWidget {
           return const Center(child: Text('Nessuna categoria trovata. Aggiungine una prima di creare una specie.'));
         }
 
-        // Raggruppa le specie per idCategoria
         final specieRaggruppate = <int, List<Specie>>{};
         for (var s in specie) {
           specieRaggruppate.putIfAbsent(s.idCategoria, () => []).add(s);
         }
 
-        return ListView.builder(
-          itemCount: categorie.length,
-          itemBuilder: (context, index) {
-            final categoria = categorie[index];
-            final specieDellaCategoria = specieRaggruppate[categoria.id] ?? [];
-
-            return ExpansionTile(
-              title: Text(categoria.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
-              children: [
-                ...specieDellaCategoria.map((s) => ListTile(
-                  title: Text(s.nome),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(icon: const Icon(Icons.edit, size: 20, color: Colors.blueGrey), onPressed: () => onEdit(s)),
-                      IconButton(icon: const Icon(Icons.delete, size: 20, color: Colors.redAccent), onPressed: () => onDelete(s.id!)),
-                    ],
-                  ),
-                )).toList(),
-                ListTile(
-                  leading: const Icon(Icons.add, color: Colors.green),
-                  title: const Text('Aggiungi Specie a questa categoria', style: TextStyle(color: Colors.green)),
-                  onTap: () => onAdd(categoria.id!),
-                ),
-              ],
-            );
+        return RefreshIndicator(
+          onRefresh: () async {
+            await ref.read(tutteLeCategorieProvider.notifier).caricaCategorie();
+            await ref.read(tutteLeSpecieProvider.notifier).caricaSpecie();
           },
+          child: ListView.builder(
+            itemCount: categorie.length,
+            itemBuilder: (context, index) {
+              final categoria = categorie[index];
+              final specieDellaCategoria = specieRaggruppate[categoria.id] ?? [];
+
+              return ExpansionTile(
+                title: Text(categoria.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
+                children: [
+                  ...specieDellaCategoria.map((s) => ListTile(
+                    title: Text(s.nome),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(icon: const Icon(Icons.edit, size: 20, color: Colors.blueGrey), onPressed: () => onEdit(s)),
+                        IconButton(icon: const Icon(Icons.delete, size: 20, color: Colors.redAccent), onPressed: () => onDelete(s.id!)),
+                      ],
+                    ),
+                  )).toList(),
+                  ListTile(
+                    leading: const Icon(Icons.add, color: Colors.green),
+                    title: const Text('Aggiungi Specie a questa categoria', style: TextStyle(color: Colors.green)),
+                    onTap: () => onAdd(categoria.id!),
+                  ),
+                ],
+              );
+            },
+          ),
         );
       },
     );
