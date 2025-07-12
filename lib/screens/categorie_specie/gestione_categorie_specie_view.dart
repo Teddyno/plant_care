@@ -285,7 +285,7 @@ class _SpecieListView extends ConsumerWidget {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(icon: const Icon(Icons.edit, size: 20, color: Colors.blueGrey), onPressed: () => onEdit(s)),
+                        IconButton(icon: const Icon(Icons.edit, size: 20, color: Colors.blue), onPressed: () => onEdit(s)),
                         IconButton(icon: const Icon(Icons.delete, size: 20, color: Colors.redAccent), onPressed: () => onDelete(s.id!)),
                       ],
                     ),
