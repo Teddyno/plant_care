@@ -1,48 +1,59 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'piante_provider.dart';
-import 'specie_provider.dart';
-import 'categorie_provider.dart';
+import 'package:collection/collection.dart';
 import 'attivita_cura_provider.dart';
+import 'piante_provider.dart';
+import 'categorie_provider.dart';
+import 'specie_provider.dart';
 
-/// Provider che calcola la distribuzione delle piante per categoria.
-/// Si aggiorna automaticamente se le piante, le specie o le categorie cambiano.
+/// Provider per il grafico a torta della distribuzione delle piante per categoria.
 final distribuzioneCategorieProvider = Provider<Map<String, int>>((ref) {
-  // "Ascolta" lo stato dei provider da cui dipende
-  final piante = ref.watch(pianteProvider).piante;
-  final tutteLeSpecie = ref.watch(tutteLeSpecieProvider).value ?? [];
-  final tutteLeCategorie = ref.watch(tutteLeCategorieProvider).value ?? [];
+  final pianteState = ref.watch(pianteProvider);
+  final categorieState = ref.watch(tutteLeCategorieProvider);
+  final specieState = ref.watch(tutteLeSpecieProvider);
+  final piante = pianteState.piante;
+  final categorie = categorieState.asData?.value ?? [];
+  final specie = specieState.asData?.value ?? [];
 
-  if (piante.isEmpty || tutteLeSpecie.isEmpty || tutteLeCategorie.isEmpty) {
-    return {}; // Restituisce dati vuoti se non è ancora tutto pronto
+  if (piante.isEmpty || categorie.isEmpty || specie.isEmpty) {
+    return {};
   }
 
-  final Map<String, int> distribuzione = {};
+  final Map<int, String> mapIdCategoriaNome = { for (var c in categorie) c.id!: c.nome };
+  final Map<int, int> mapIdSpecieIdCategoria = { for (var s in specie) s.id!: s.idCategoria };
+
+  final conteggio = <String, int>{};
   for (var pianta in piante) {
-    try {
-      final specie = tutteLeSpecie.firstWhere((s) => s.id == pianta.idSpecie);
-      final categoria = tutteLeCategorie.firstWhere((c) => c.id == specie.idCategoria);
-      final nomeCategoria = categoria.nome;
-      distribuzione[nomeCategoria] = (distribuzione[nomeCategoria] ?? 0) + 1;
-    } catch (e) {
-      distribuzione['Senza categoria'] = (distribuzione['Senza categoria'] ?? 0) + 1;
-    }
+    final idCategoria = mapIdSpecieIdCategoria[pianta.idSpecie];
+    final nomeCategoria = mapIdCategoriaNome[idCategoria] ?? 'Sconosciuta';
+    conteggio.update(nomeCategoria, (value) => value + 1, ifAbsent: () => 1);
   }
-  return distribuzione;
+  return conteggio;
 });
 
 
-/// Provider che calcola le attività mensili per il grafico a barre.
-final attivitaMensiliProvider = Provider<List<double>>((ref) {
+/// Questo provider deriva il suo stato direttamente da `attivitaCuraProvider`.
+/// In questo modo, ogni volta che una nuova attività viene aggiunta (e quindi
+/// lo stato di `attivitaCuraProvider` cambia), questo provider si ricalcola
+/// automaticamente, garantendo che il grafico sia SEMPRE aggiornato.
+final conteggioAttivitaGiornalieroProvider = Provider<Map<DateTime, int>>((ref) {
+  // "Ascolta" lo stato delle attività di cura
   final tutteLeAttivita = ref.watch(attivitaCuraProvider).tutteLeAttivita;
 
-  final now = DateTime.now();
-  final List<double> attivitaMensili = List.filled(12, 0.0);
-
-  for (var attivita in tutteLeAttivita) {
-    final mesiFa = now.difference(attivita.data).inDays ~/ 30;
-    if (mesiFa < 12) {
-      attivitaMensili[11 - mesiFa]++;
-    }
+  if (tutteLeAttivita.isEmpty) {
+    return {};
   }
-  return attivitaMensili;
+
+  // Raggruppa le attività per giorno, ignorando l'orario.
+  // Usa il pacchetto 'collection' per la funzione groupBy.
+  final groupedByDay = groupBy(
+    tutteLeAttivita,
+        (attivita) => DateTime(attivita.data.year, attivita.data.month, attivita.data.day),
+  );
+
+  // Converte i gruppi in una mappa che conta le attività per ogni giorno.
+  final conteggio = groupedByDay.map((giorno, attivitaDelGiorno) {
+    return MapEntry(giorno, attivitaDelGiorno.length);
+  });
+
+  return conteggio;
 });

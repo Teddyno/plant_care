@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'screens/main/main_view.dart';
 import 'themes/themes.dart';
 import 'services/db/DatabaseHelper.dart';
 
 void main() async {
+  // Assicura che i widget Flutter siano pronti prima di eseguire altro codice
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inizializza la formattazione per la lingua italiana
+  await initializeDateFormatting('it_IT', null);
 
   // Inizializza il database con dati di default se necessario
   try {
     print('Inizializzazione del database...');
-    await DatabaseHelper.instance.inizializzaSeVuoto();
+    // NOTA: Non è più necessario chiamare 'inizializzaSeVuoto' qui,
+    // perché il DatabaseHelper ora gestisce l'inizializzazione al primo accesso.
+    // Se vuoi forzare l'inizializzazione, puoi comunque chiamare:
+    await DatabaseHelper.instance.database; // Questo triggera _initDB e _onCreate
     print('Database inizializzato con successo');
   } catch (e) {
     print('Errore durante l\'inizializzazione del database: $e');
@@ -30,7 +38,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // La MaterialApp rimane identica, ma ora si trova DENTRO un ProviderScope.
     return MaterialApp(
       title: 'PlantCare',
       theme: appTheme,

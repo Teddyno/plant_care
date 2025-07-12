@@ -1,17 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/AttivitaCuraModel.dart';
-import '../models/PiantaModel.dart';
 import '../models/PromemoriaModel.dart';
-import '../models/repository/AttivitaCuraRepository.dart';
-import 'piante_provider.dart';
+import '../services/db/DatabaseHelper.dart';
+import '../providers/attivita_cura_provider.dart';
+import '../providers/piante_provider.dart';
 
-// Funzione helper per "pulire" una data dall'orario
-DateTime _giornoPreciso(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
-
+/// Definisce lo stato per i promemoria.
 class PromemoriaState {
   final List<Promemoria> promemoria;
   final bool isLoading;
-  final String? idAttivitaAppenaCompletata;
+  final int? idAttivitaAppenaCompletata;
 
   PromemoriaState({
     this.promemoria = const [],
@@ -22,7 +20,7 @@ class PromemoriaState {
   PromemoriaState copyWith({
     List<Promemoria>? promemoria,
     bool? isLoading,
-    String? idAttivitaAppenaCompletata,
+    int? idAttivitaAppenaCompletata,
   }) {
     return PromemoriaState(
       promemoria: promemoria ?? this.promemoria,
@@ -32,86 +30,99 @@ class PromemoriaState {
   }
 }
 
+/// Il Notifier che gestisce la logica dei promemoria.
 class PromemoriaNotifier extends StateNotifier<PromemoriaState> {
   final Ref _ref;
-  final AttivitaCuraRepository _attivitaRepository = AttivitaCuraRepository.instance;
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   PromemoriaNotifier(this._ref) : super(PromemoriaState()) {
-    _ref.listen(pianteProvider, (previous, next) {
-      if (!next.isLoading) {
-        calcolaPromemoria();
-      }
-    });
+    // Ascolta le modifiche per mantenere la UI sempre aggiornata
+    _ref.listen(pianteProvider, (_, __) => calcolaPromemoria());
+    _ref.listen(attivitaCuraProvider, (_, __) => calcolaPromemoria());
   }
 
+  /// Calcola e carica i promemoria per le attività di cura scadute e imminenti.
   Future<void> calcolaPromemoria() async {
     state = state.copyWith(isLoading: true);
 
-    final tutteLePiante = _ref.read(pianteProvider).piante;
-    final tutteLeAttivita = await _attivitaRepository.getTutteLeAttivita();
-    List<Promemoria> promemoriaCalcolati = [];
+    final piante = _ref.read(pianteProvider).piante;
+    final List<Promemoria> promemoriaGenerati = [];
+    final now = DateTime.now();
+    // Definiamo una soglia per le attività "imminenti" (es. i prossimi 7 giorni)
+    final sogliaImminenza = now.add(const Duration(days: 7));
 
-    for (var pianta in tutteLePiante) {
-      _calcolaProssimaAttivita(pianta, TipoAttivita.innaffiatura, tutteLeAttivita, promemoriaCalcolati);
-      _calcolaProssimaAttivita(pianta, TipoAttivita.potatura, tutteLeAttivita, promemoriaCalcolati);
-      _calcolaProssimaAttivita(pianta, TipoAttivita.rinvaso, tutteLeAttivita, promemoriaCalcolati);
+    for (var pianta in piante) {
+      // Controlla l'innaffiatura
+      if (pianta.frequenzaInnaffiatura > 0) {
+        final ultima = await _dbHelper.getUltimaAttivita(pianta.id!, 'innaffiatura');
+        final prossimaScadenza = (ultima ?? pianta.dataAcquisto).add(Duration(days: pianta.frequenzaInnaffiatura));
+        // Mostra l'attività se è già scaduta OPPURE se scade entro la soglia di imminenza.
+        if (prossimaScadenza.isBefore(sogliaImminenza)) {
+          promemoriaGenerati.add(Promemoria(
+            pianta: pianta,
+            attivita: TipoAttivita.innaffiatura,
+            dataScadenza: prossimaScadenza,
+          ));
+        }
+      }
+
+      // Controlla la potatura
+      if (pianta.frequenzaPotatura > 0) {
+        final ultima = await _dbHelper.getUltimaAttivita(pianta.id!, 'potatura');
+        final prossimaScadenza = (ultima ?? pianta.dataAcquisto).add(Duration(days: pianta.frequenzaPotatura));
+        if (prossimaScadenza.isBefore(sogliaImminenza)) {
+          promemoriaGenerati.add(Promemoria(
+            pianta: pianta,
+            attivita: TipoAttivita.potatura,
+            dataScadenza: prossimaScadenza,
+          ));
+        }
+      }
+
+      // Controlla il rinvaso
+      if (pianta.frequenzaRinvaso > 0) {
+        final ultima = await _dbHelper.getUltimaAttivita(pianta.id!, 'rinvaso');
+        final prossimaScadenza = (ultima ?? pianta.dataAcquisto).add(Duration(days: pianta.frequenzaRinvaso));
+        if (prossimaScadenza.isBefore(sogliaImminenza)) {
+          promemoriaGenerati.add(Promemoria(
+            pianta: pianta,
+            attivita: TipoAttivita.rinvaso,
+            dataScadenza: prossimaScadenza,
+          ));
+        }
+      }
     }
 
-    promemoriaCalcolati.sort((a, b) => a.dataScadenza.compareTo(b.dataScadenza));
-    state = state.copyWith(promemoria: promemoriaCalcolati, isLoading: false);
+    promemoriaGenerati.sort((a, b) => a.dataScadenza.compareTo(b.dataScadenza));
+
+    state = state.copyWith(promemoria: promemoriaGenerati, isLoading: false);
   }
 
-  void _calcolaProssimaAttivita(Pianta pianta, TipoAttivita tipo, List<AttivitaCura> attivita, List<Promemoria> listaPromemoria) {
-    final attivitaPrecedenti = attivita.where((a) => a.idPianta == pianta.id && a.tipoAttivita == tipo.name).toList();
-    DateTime ultimaData;
-    if (attivitaPrecedenti.isNotEmpty) {
-      attivitaPrecedenti.sort((a, b) => b.data.compareTo(a.data));
-      ultimaData = attivitaPrecedenti.first.data;
-    } else {
-      ultimaData = pianta.dataAcquisto;
-    }
-
-    // CORREZIONE: Usa la data "pulita" per il calcolo
-    int frequenza = _getFrequenza(pianta, tipo);
-    DateTime dataScadenza = _giornoPreciso(ultimaData).add(Duration(days: frequenza));
-
-    if (dataScadenza.isBefore(_giornoPreciso(DateTime.now()).add(const Duration(days: 30)))) {
-      listaPromemoria.add(Promemoria(
-        pianta: pianta,
-        attivita: tipo,
-        dataScadenza: dataScadenza,
-      ));
-    }
-  }
-
-  int _getFrequenza(Pianta pianta, TipoAttivita tipo) {
-    switch(tipo) {
-      case TipoAttivita.innaffiatura: return pianta.frequenzaInnaffiatura;
-      case TipoAttivita.potatura: return pianta.frequenzaPotatura;
-      case TipoAttivita.rinvaso: return pianta.frequenzaRinvaso;
-    }
-  }
-
+  /// Metodo che viene chiamato quando un utente completa un'attività.
   Future<void> completaAttivita(Promemoria promemoria) async {
-    final uniqueId = '${promemoria.pianta.id}_${promemoria.attivita.name}';
-    state = state.copyWith(idAttivitaAppenaCompletata: uniqueId);
+    state = state.copyWith(idAttivitaAppenaCompletata: promemoria.pianta.id);
 
-    // CORREZIONE: Salva la nuova attività con la data di oggi "pulita"
+    print('Creazione di una nuova attività di cura dal promemoria completato...');
+
     final nuovaAttivita = AttivitaCura(
       idPianta: promemoria.pianta.id!,
       tipoAttivita: promemoria.attivita.name,
-      data: _giornoPreciso(DateTime.now()),
+      data: DateTime.now(),
     );
-    await _attivitaRepository.aggiungiAttivita(nuovaAttivita);
 
-    await Future.delayed(const Duration(milliseconds: 1500));
-    await calcolaPromemoria();
+    await _ref.read(attivitaCuraProvider.notifier).aggiungiAttivita(nuovaAttivita);
 
-    // Resetta lo stato per sicurezza (anche se calcolaPromemoria già lo fa)
-    state = state.copyWith(idAttivitaAppenaCompletata: null);
+    print('Nuova attività aggiunta e stato aggiornato.');
+
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        state = state.copyWith(idAttivitaAppenaCompletata: null);
+      }
+    });
   }
 }
 
+// Definisce il provider, passando il 'ref' al notifier.
 final promemoriaProvider = StateNotifierProvider<PromemoriaNotifier, PromemoriaState>((ref) {
   return PromemoriaNotifier(ref);
 });

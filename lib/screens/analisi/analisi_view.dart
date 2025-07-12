@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../components/grafici/pie_chart.dart';
-import '../../components/grafici/line_chart.dart';
+import '../../components/grafici/storico_cure_widget.dart';
 import '../../providers/piante_provider.dart';
 import '../../providers/analisi_provider.dart';
 import '../../providers/attivita_cura_provider.dart';
 import '../../providers/categorie_provider.dart';
 import '../../providers/specie_provider.dart';
 
-/// Schermata di analisi che ora è un ConsumerWidget reattivo.
+/// Schermata di analisi
 class AnalisiView extends ConsumerWidget {
   const AnalisiView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // "Ascolta" direttamente i provider che contengono i dati già calcolati
+    // "Ascolta" i provider necessari per la vista.
     final pianteState = ref.watch(pianteProvider);
     final distribuzioneCategorie = ref.watch(distribuzioneCategorieProvider);
-    final attivitaMensili = ref.watch(attivitaMensiliProvider);
 
     // Gestisce lo stato di caricamento generale
     if (pianteState.isLoading) {
@@ -27,13 +26,14 @@ class AnalisiView extends ConsumerWidget {
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
-          // Invalida i provider per forzare un ricaricamento
+          // Riverpod si occuperà di aggiornare a cascata tutti i provider dipendenti.
           ref.invalidate(pianteProvider);
           ref.invalidate(attivitaCuraProvider);
           ref.invalidate(tutteLeCategorieProvider);
           ref.invalidate(tutteLeSpecieProvider);
         },
         child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
             child: Column(
@@ -90,7 +90,7 @@ class AnalisiView extends ConsumerWidget {
                 ),
                 const SizedBox(height: 32),
 
-                // 3. Attività di cura eseguite
+                // Grafico delle attività di cura annuali
                 Card(
                   elevation: 4,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -100,17 +100,13 @@ class AnalisiView extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text('Attività di cura eseguite (ultimi 12 mesi)',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 220,
-                          child: PlantBarChart(
-                            labels: List.generate(12, (i) => (i + 1).toString()), // Semplici etichette mensili
-                            values: attivitaMensili,
-                          ),
+                        Text(
+                          'Attività di Cura Annuale',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
                         ),
+                        const SizedBox(height: 20),
+                        const StoricoCure(),
                       ],
                     ),
                   ),
