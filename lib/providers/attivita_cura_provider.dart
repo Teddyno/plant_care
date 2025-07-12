@@ -40,13 +40,13 @@ class AttivitaCuraNotifier extends StateNotifier<AttivitaCuraState> {
     await caricaAttivita();
   }
 
-  /// [NUOVO] Aggiorna un'attività di cura esistente e ricarica la lista.
+  ///Aggiorna un'attività di cura esistente e ricarica la lista.
   Future<void> aggiornaAttivita(AttivitaCura attivita) async {
     await _repository.aggiornaAttivita(attivita);
     await caricaAttivita();
   }
 
-  /// [NUOVO] Elimina un'attività di cura e ricarica la lista.
+  ///Elimina un'attività di cura e ricarica la lista.
   Future<void> eliminaAttivita(int id) async {
     await _repository.eliminaAttivita(id);
     await caricaAttivita();

@@ -12,7 +12,7 @@ import '../providers/piante_provider.dart';
 import '../providers/categorie_provider.dart';
 import '../providers/specie_provider.dart';
 
-/// Form per aggiungere o modificare una pianta, ora completamente integrato con Riverpod.
+/// Form per aggiungere o modificare una pianta, completamente integrato con Riverpod.
 class PiantaForm extends ConsumerStatefulWidget {
   final Pianta? piantaIniziale;
   final Function(Pianta pianta) onSave;
@@ -107,7 +107,7 @@ class _PiantaFormState extends ConsumerState<PiantaForm> {
               ),
               const SizedBox(height: 16),
 
-              // Dropdown Categorie (ora basato su Riverpod)
+              // Dropdown Categorie
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -161,7 +161,7 @@ class _PiantaFormState extends ConsumerState<PiantaForm> {
 
               const SizedBox(height: 16),
 
-              // Dropdown Specie (ora basato su Riverpod)
+              // Dropdown Specie
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -299,7 +299,7 @@ class _PiantaFormState extends ConsumerState<PiantaForm> {
     );
   }
 
-  // --- METODI DI LOGICA (ora integrati con Riverpod) ---
+  // --- METODI DI LOGICA ---
 
   Widget _buildImagePreview() {
     if (_foto != null) {

@@ -41,7 +41,6 @@ class PromemoriaNotifier extends StateNotifier<PromemoriaState> {
     _ref.listen(pianteProvider, (_, __) => calcolaPromemoria());
     _ref.listen(attivitaCuraProvider, (_, __) => calcolaPromemoria());
 
-    // Esegue il calcolo iniziale.
     calcolaPromemoria();
   }
 
@@ -52,7 +51,6 @@ class PromemoriaNotifier extends StateNotifier<PromemoriaState> {
     if (_ref.read(pianteProvider).isLoading) return;
 
     final piante = _ref.read(pianteProvider).piante;
-    // Aggiunto 'await' per attendere il completamento del calcolo.
     await _eseguiCalcoloPromemoria(piante);
   }
 

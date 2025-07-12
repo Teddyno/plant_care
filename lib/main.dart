@@ -15,9 +15,6 @@ void main() async {
   // Inizializza il database con dati di default se necessario
   try {
     print('Inizializzazione del database...');
-    // NOTA: Non è più necessario chiamare 'inizializzaSeVuoto' qui,
-    // perché il DatabaseHelper ora gestisce l'inizializzazione al primo accesso.
-    // Se vuoi forzare l'inizializzazione, puoi comunque chiamare:
     await DatabaseHelper.instance.database; // Questo triggera _initDB e _onCreate
     print('Database inizializzato con successo');
   } catch (e) {

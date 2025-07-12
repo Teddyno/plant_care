@@ -10,7 +10,6 @@ import '../../components/popup_aggiunta.dart';
 final mainViewProvider = StateProvider<int>((ref) => 0);
 
 /// Schermata principale dell'applicazione che gestisce la navigazione.
-/// Ora è un ConsumerWidget per una gestione dello stato più pulita.
 class MainView extends ConsumerWidget {
   const MainView({super.key});
 
@@ -58,7 +57,6 @@ class MainView extends ConsumerWidget {
             icon: Icon(Icons.analytics),
             label: 'Analisi',
           ),
-          // 3. Aggiunta la nuova voce per la gestione
           BottomNavigationBarItem(
             icon: Icon(Icons.tune),
             label: 'Gestione',

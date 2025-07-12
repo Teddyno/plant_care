@@ -1,9 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/PiantaModel.dart';
 import '../models/repository/PianteRepository.dart';
-// [MODIFICA] Questi import non sono più necessari qui
-// import 'attivita_cura_provider.dart';
-// import 'promemoria_provider.dart';
 
 /// Definisce lo stato per le piante, che include la lista
 /// di tutte le piante, una lista delle piante più recenti e un flag di caricamento.
@@ -79,10 +76,6 @@ class PianteNotifier extends StateNotifier<PianteState> {
   Future<void> eliminaPianta(int id) async {
     await _repository.eliminaPianta(id);
 
-    // [SOLUZIONE] Forza il ricaricamento di tutti i dati per mantenere la coerenza.
-    // La chiamata a `caricaPiante` aggiorna lo stato di questo provider.
-    // Gli altri provider che "ascoltano" `pianteProvider` (come promemoriaProvider)
-    // si aggiorneranno automaticamente. Le righe `_ref.invalidate` sono state rimosse.
     await caricaPiante();
   }
 }

@@ -20,7 +20,6 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    // Aggiunge un listener per aggiornare la UI quando il tab cambia (per il FAB)
     _tabController.addListener(() {
       setState(() {});
     });
@@ -62,7 +61,6 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        // [SOLUZIONE] Aggiunto un heroTag univoco per risolvere il conflitto.
         heroTag: 'gestione_categorie_specie_fab',
         onPressed: () {
           if (_tabController.index == 0) {
@@ -77,7 +75,7 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
     );
   }
 
-  // --- DIALOGHI E FUNZIONI DI UTILITÀ (ora metodi della classe State) ---
+  // --- DIALOGHI E FUNZIONI DI UTILITÀ---
 
   void _mostraDialogoCategoria(BuildContext context, WidgetRef ref, {Categoria? categoria}) {
     final isModifica = categoria != null;

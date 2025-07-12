@@ -40,7 +40,6 @@ class SpecieNotifier extends StateNotifier<AsyncValue<List<Specie>>> {
   }
 }
 
-/// [SOLUZIONE DEFINITIVA] Provider che espone la lista di specie.
 final tutteLeSpecieProvider = StateNotifierProvider<SpecieNotifier, AsyncValue<List<Specie>>>((ref) {
   return SpecieNotifier();
 });
