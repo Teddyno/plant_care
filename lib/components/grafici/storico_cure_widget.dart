@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../providers/analisi_provider.dart';
 
-// Un widget che mostra un grafico delle attività di cura annuali,
+/// Un widget che mostra un grafico delle attività di cura annuali,
 class StoricoCure extends ConsumerWidget {
   const StoricoCure({super.key});
 
@@ -31,7 +31,8 @@ class StoricoCure extends ConsumerWidget {
       datasets: conteggioAttivita,
       colorMode: ColorMode.color,
       showColorTip: false,
-
+      textColor: Colors.black,
+      
       // Imposta i colori in base al numero di attività
       colorsets: const {
         1: Color.fromARGB(255, 160, 215, 162), // Verde chiaro per poche attività
@@ -47,7 +48,7 @@ class StoricoCure extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$count attività registrate il $formattedDate'),
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 1, milliseconds: 500),
           ),
         );
       },
