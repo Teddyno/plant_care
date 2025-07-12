@@ -80,7 +80,18 @@ class PianteDashboardView extends ConsumerWidget {
                       child: ListTile(
                         leading: pianta.foto != null
                             ? ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.memory(pianta.foto!, width: 40, height: 40, fit: BoxFit.cover))
-                            : Container(width: 40, height: 40, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)), child: Icon(Icons.local_florist, color: Colors.grey.shade600, size: 20)),
+                            : Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
+                                child: Image.asset(
+                                  'assets/icon.png',
+                                  width: 56,
+                                  height: 56,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (ctx, err, stack) => const Icon(Icons.local_florist, size: 40, color: Colors.grey),
+                                ),
+                              ),
                         title: Text(pianta.nome, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
