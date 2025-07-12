@@ -4,9 +4,9 @@ import '../../providers/piante_provider.dart';
 import '../../models/PiantaModel.dart';
 import 'piante_detail_view.dart';
 
-/// Schermata che mostra la lista completa di tutte le piante.
-/// Questo widget "ascolta" i cambiamenti dal pianteProvider e si
-/// aggiorna automaticamente.
+// Schermata che mostra la lista completa di tutte le piante.
+// Questo widget "ascolta" i cambiamenti dal pianteProvider e si
+// aggiorna automaticamente.
 class PianteListView extends ConsumerWidget {
   const PianteListView({super.key});
 
@@ -34,14 +34,14 @@ class PianteListView extends ConsumerWidget {
     );
   }
 
-  /// Costruisce il corpo della schermata in base allo stato attuale.
+  // Costruisce il corpo della schermata in base allo stato attuale.
   Widget _buildBody(BuildContext context, WidgetRef ref, PianteState state) {
     // Se sta caricando, mostra un indicatore di progresso
     if (state.isLoading && state.piante.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Se la lista è vuota, mostra un messaggio amichevole
+    // Se la lista è vuota, mostra un messaggio 
     if (state.piante.isEmpty) {
       return Center(
         child: Padding(

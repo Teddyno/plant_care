@@ -12,7 +12,7 @@ import '../providers/piante_provider.dart';
 import '../providers/categorie_provider.dart';
 import '../providers/specie_provider.dart';
 
-/// Form per aggiungere o modificare una pianta, completamente integrato con Riverpod.
+// Form per aggiungere o modificare una pianta, completamente integrato con Riverpod.
 class PiantaForm extends ConsumerStatefulWidget {
   final Pianta? piantaIniziale;
   final Function(Pianta pianta) onSave;
@@ -334,6 +334,7 @@ class _PiantaFormState extends ConsumerState<PiantaForm> {
     }
   }
 
+  // Crea una nuova categoria e ricarica la lista.
   Future<void> _creaNuovaCategoria() async {
     final nomeCategoria = _nuovaCategoriaController.text.trim();
     if (nomeCategoria.isEmpty) return;
@@ -346,6 +347,7 @@ class _PiantaFormState extends ConsumerState<PiantaForm> {
     });
   }
 
+  // Crea una nuova specie e ricarica la lista.
   Future<void> _creaNuovaSpecie() async {
     if (_categoriaSelezionataId == null) return;
     final nomeSpecie = _nuovaSpecieController.text.trim();
@@ -360,6 +362,7 @@ class _PiantaFormState extends ConsumerState<PiantaForm> {
     });
   }
 
+  // Converte un file immagine in Uint8List per salvarlo nel database.
   Future<Uint8List?> _convertiImmagineInBytes(File file) async {
     try {
       return await file.readAsBytes();
@@ -368,6 +371,7 @@ class _PiantaFormState extends ConsumerState<PiantaForm> {
     }
   }
 
+  // Salva la pianta, validando il form e convertendo l'immagine se necessario.
   Future<void> _salva() async {
     if (_formKey.currentState?.validate() ?? false) {
       FocusScope.of(context).unfocus();
@@ -400,6 +404,7 @@ class _PiantaFormState extends ConsumerState<PiantaForm> {
   }
 }
 
+// Widget per l'input delle frequenze, con validazione e stili personalizzati.
 class _FrequencyInput extends StatelessWidget {
   const _FrequencyInput({
     required this.controller,

@@ -6,7 +6,7 @@ import '../services/db/DatabaseHelper.dart';
 import '../providers/attivita_cura_provider.dart';
 import '../providers/piante_provider.dart';
 
-/// Definisce lo stato per i promemoria.
+// Definisce lo stato per i promemoria.
 class PromemoriaState {
   final List<Promemoria> promemoria;
   final bool isLoading;
@@ -31,7 +31,7 @@ class PromemoriaState {
   }
 }
 
-/// Il Notifier che gestisce la logica dei promemoria.
+// Il Notifier che gestisce la logica dei promemoria.
 class PromemoriaNotifier extends StateNotifier<PromemoriaState> {
   final Ref _ref;
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -44,8 +44,8 @@ class PromemoriaNotifier extends StateNotifier<PromemoriaState> {
     calcolaPromemoria();
   }
 
-  /// [SOLUZIONE] Metodo reso asincrono per restituire un Future,
-  /// come richiesto dalla UI (es. RefreshIndicator).
+  // [SOLUZIONE] Metodo reso asincrono per restituire un Future,
+  // come richiesto dalla UI (es. RefreshIndicator).
   Future<void> calcolaPromemoria() async {
     // Se una delle dipendenze sta ancora caricando, non fare nulla.
     if (_ref.read(pianteProvider).isLoading) return;
@@ -54,7 +54,7 @@ class PromemoriaNotifier extends StateNotifier<PromemoriaState> {
     await _eseguiCalcoloPromemoria(piante);
   }
 
-  /// Metodo privato che esegue il calcolo effettivo dei promemoria.
+  // Metodo privato che esegue il calcolo effettivo dei promemoria.
   Future<void> _eseguiCalcoloPromemoria(List<Pianta> piante) async {
     if (state.isLoading) return;
     state = state.copyWith(isLoading: true);
@@ -111,7 +111,7 @@ class PromemoriaNotifier extends StateNotifier<PromemoriaState> {
     }
   }
 
-  /// Metodo che viene chiamato quando un utente completa un'attività.
+  // Metodo che viene chiamato quando un utente completa un'attività.
   Future<void> completaAttivita(Promemoria promemoria) async {
     state = state.copyWith(idAttivitaAppenaCompletata: promemoria.pianta.id);
 

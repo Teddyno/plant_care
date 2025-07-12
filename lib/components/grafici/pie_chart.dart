@@ -1,30 +1,30 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-/// Widget che visualizza un grafico a torta per rappresentare la distribuzione delle piante per categoria.
-/// Mostra la percentuale di piante appartenenti a ciascuna categoria con colori distinti.
-/// Include una legenda interattiva che mostra le categorie e le relative percentuali.
-/// Il layout si adatta automaticamente all'orientamento del dispositivo.
+// Widget che visualizza un grafico a torta per rappresentare la distribuzione delle piante per categoria.
+// Mostra la percentuale di piante appartenenti a ciascuna categoria con colori distinti.
+// Include una legenda interattiva che mostra le categorie e le relative percentuali.
+// Il layout si adatta automaticamente all'orientamento del dispositivo.
 class PlantPieChart extends StatefulWidget {
-  /// Mappa che contiene le categorie delle piante come chiave e il conteggio come valore.
-  /// Utilizzata per calcolare le percentuali e generare le sezioni del grafico.
+  // Mappa che contiene le categorie delle piante come chiave e il conteggio come valore.
+  // Utilizzata per calcolare le percentuali e generare le sezioni del grafico.
   final Map<String, int> conteggioCategorie;
 
-  /// Costruttore del grafico a torta
+  // Costruttore del grafico a torta
   const PlantPieChart({super.key, required this.conteggioCategorie});
 
   @override
   State<PlantPieChart> createState() => _PlantPieChartState();
 }
 
-/// Stato interno del grafico a torta.
+// Stato interno del grafico a torta.
 class _PlantPieChartState extends State<PlantPieChart> {
-  /// Indice della sezione attualmente toccata dall'utente nel grafico.
-  /// Utilizzato per evidenziare la sezione selezionata.
+  // Indice della sezione attualmente toccata dall'utente nel grafico.
+  // Utilizzato per evidenziare la sezione selezionata.
   
-  int touchedIndex = -1;  /// -1 indica che nessuna sezione è toccata.
+  int touchedIndex = -1;  // -1 indica che nessuna sezione è toccata.
 
-  /// Costruisce l'interfaccia utente del grafico a torta
+  // Costruisce l'interfaccia utente del grafico a torta
   @override
   Widget build(BuildContext context) {
     // Se non ci sono dati, mostra un messaggio informativo
@@ -108,7 +108,7 @@ class _PlantPieChartState extends State<PlantPieChart> {
     }
   }
 
-  /// Genera le sezioni del grafico a torta in base ai dati delle categorie.
+  // Genera le sezioni del grafico a torta in base ai dati delle categorie.
   List<PieChartSectionData> _showingSections(
     Map<String, int> conteggioCategorie,
   ) {
@@ -135,7 +135,7 @@ class _PlantPieChartState extends State<PlantPieChart> {
     return sezioni;
   }
 
-  /// Costruisce la legenda che mostra le categorie e le relative percentuali.
+  // Costruisce la legenda che mostra le categorie e le relative percentuali.
   Widget _buildLegenda(Map<String, int> conteggioCategorie) {
     // Calcola il totale delle piante per calcolare le percentuali
     final totale = conteggioCategorie.values.fold<int>(0, (a, b) => a + b);

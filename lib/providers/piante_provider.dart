@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/PiantaModel.dart';
 import '../models/repository/PianteRepository.dart';
 
-/// Definisce lo stato per le piante, che include la lista
-/// di tutte le piante, una lista delle piante più recenti e un flag di caricamento.
+// Definisce lo stato per le piante, che include la lista
+// di tutte le piante, una lista delle piante più recenti e un flag di caricamento.
 class PianteState {
   final List<Pianta> piante;
   final List<Pianta> pianteRecenti;
@@ -28,20 +28,16 @@ class PianteState {
   }
 }
 
-/// Il Notifier che gestisce la logica per caricare, aggiungere,
-/// modificare ed eliminare le piante.
+// Il Notifier che gestisce la logica per caricare, aggiungere,
+// modificare ed eliminare le piante.
 class PianteNotifier extends StateNotifier<PianteState> {
   final PianteRepository _repository = PianteRepository();
-  // [MODIFICA] Il riferimento a Ref non è più necessario qui,
-  // perché la logica di invalidazione è stata rimossa.
-  // final Ref _ref;
 
-  // [MODIFICA] Il costruttore non ha più bisogno di 'ref'.
   PianteNotifier() : super(PianteState()) {
     caricaPiante();
   }
 
-  /// Carica tutte le piante e le piante recenti dal database.
+  // Carica tutte le piante e le piante recenti dal database.
   Future<void> caricaPiante() async {
     state = state.copyWith(isLoading: true);
 
@@ -60,19 +56,19 @@ class PianteNotifier extends StateNotifier<PianteState> {
     );
   }
 
-  /// Aggiunge una nuova pianta e ricarica la lista per aggiornare la UI.
+  // Aggiunge una nuova pianta e ricarica la lista per aggiornare la UI.
   Future<void> aggiungiPianta(Pianta pianta) async {
     await _repository.aggiungiPianta(pianta);
     await caricaPiante();
   }
 
-  /// Aggiorna una pianta esistente e ricarica la lista.
+  // Aggiorna una pianta esistente e ricarica la lista.
   Future<void> aggiornaPianta(Pianta pianta) async {
     await _repository.aggiornaPianta(pianta);
     await caricaPiante();
   }
 
-  /// Elimina una pianta e forza l'aggiornamento degli altri provider.
+  // Elimina una pianta e forza l'aggiornamento degli altri provider.
   Future<void> eliminaPianta(int id) async {
     await _repository.eliminaPianta(id);
 
@@ -80,8 +76,7 @@ class PianteNotifier extends StateNotifier<PianteState> {
   }
 }
 
-/// Il provider globale che espone il `PianteNotifier` al resto dell'app.
-// [MODIFICA] Il provider non passa più il 'ref' al notifier.
+// Il provider globale che espone il `PianteNotifier` al resto dell'app.
 final pianteProvider = StateNotifierProvider<PianteNotifier, PianteState>((ref) {
   return PianteNotifier();
 });

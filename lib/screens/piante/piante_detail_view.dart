@@ -8,10 +8,10 @@ import '../../providers/piante_provider.dart';
 import '../../providers/attivita_cura_provider.dart';
 import '../../providers/specie_provider.dart';
 
-/// Schermata che mostra i dettagli di una pianta specifica.
-/// Ora è un ConsumerWidget per una gestione dello stato più pulita e reattiva.
-class PianteDetailView extends ConsumerWidget {
-  // [CORREZIONE] Ripristinato il parametro 'pianta' per compatibilità con le altre viste.
+// Schermata che mostra i dettagli di una pianta specifica.
+// Ora è un ConsumerWidget per una gestione dello stato più pulita e reattiva.
+class PianteDetailView extends ConsumerWidget { 
+
   final Pianta pianta;
   const PianteDetailView({super.key, required this.pianta});
 
@@ -181,8 +181,10 @@ class PianteDetailView extends ConsumerWidget {
 
   // --- METODI DI LOGICA ---
 
+  // Formatta una data in formato "dd/mm/yyyy".
   String _formattaData(DateTime data) => '${data.day}/${data.month}/${data.year}';
 
+  // Restituisce l'icona associati all' attività.
   IconData _getActivityIcon(String tipo) {
     switch (tipo) {
       case 'innaffiatura': return Icons.water_drop;
@@ -192,6 +194,7 @@ class PianteDetailView extends ConsumerWidget {
     }
   }
 
+  // Restituisce il colore associato all' attività.
   Color _getActivityColor(String tipo) {
     switch (tipo) {
       case 'innaffiatura': return Colors.blue;
@@ -201,6 +204,7 @@ class PianteDetailView extends ConsumerWidget {
     }
   }
 
+  // Mostra un dialogo di conferma per l'eliminazione della pianta.
   void _eliminaPiantaDialog(BuildContext context, WidgetRef ref, int id) {
     showDialog(
       context: context,
@@ -227,6 +231,7 @@ class PianteDetailView extends ConsumerWidget {
     );
   }
 
+  // Modifica i dettagli della pianta.
   Future<void> _modificaPianta(BuildContext context, WidgetRef ref, Pianta pianta) async {
     await showModalBottomSheet<Pianta>(
       context: context,
@@ -241,6 +246,7 @@ class PianteDetailView extends ConsumerWidget {
     );
   }
 
+  // Mostra un dialogo per eliminare un'attività di cura.
   void _eliminaAttivitaDialog(BuildContext context, WidgetRef ref, AttivitaCura attivita) async {
     final result = await showDialog<bool>(
       context: context,
@@ -262,6 +268,7 @@ class PianteDetailView extends ConsumerWidget {
     }
   }
 
+  // Mostra un dialogo per aggiungere o modificare un'attività di cura.
   void _aggiungiOModificaAttivitaDialog(BuildContext context, WidgetRef ref, {required Pianta pianta, AttivitaCura? attivita}) async {
     final isModifica = attivita != null;
     String tipoAttivita = attivita?.tipoAttivita ?? 'innaffiatura';
@@ -323,7 +330,7 @@ class PianteDetailView extends ConsumerWidget {
     }
   }
 }
-
+// capitalizzare le stringhe.
 extension StringExtension on String {
   String capitalize() => (isEmpty) ? this : this[0].toUpperCase() + substring(1);
 }

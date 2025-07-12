@@ -5,7 +5,7 @@ import '../../models/SpecieModel.dart';
 import '../../providers/categorie_provider.dart';
 import '../../providers/specie_provider.dart';
 
-/// Schermata per la gestione di Categorie e Specie, ora con una TabBar.
+// Schermata per la gestione di Categorie e Specie
 class GestioneCategorieSpecieView extends ConsumerStatefulWidget {
   const GestioneCategorieSpecieView({super.key});
 
@@ -39,6 +39,7 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
         title: const Text('Gestione'),
         bottom: TabBar(
           controller: _tabController,
+          labelColor: Colors.white,
           tabs: const [
             Tab(text: 'Categorie'),
             Tab(text: 'Specie'),
@@ -111,6 +112,7 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
     );
   }
 
+  // Mostra un dialogo per aggiungere o modificare una specie.
   void _mostraDialogoSpecie(BuildContext context, WidgetRef ref, {int? idCategoria, Specie? specie}) {
     final isModifica = specie != null;
     final nomeController = TextEditingController(text: specie?.nome ?? '');
@@ -135,6 +137,7 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       TextField(controller: nomeController, decoration: const InputDecoration(labelText: 'Nome Specie'), autofocus: true),
+                      const SizedBox(height: 16),
                       TextField(controller: descController, decoration: const InputDecoration(labelText: 'Descrizione')),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<int>(
@@ -170,6 +173,7 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
     );
   }
 
+  // Conferma l'eliminazione di una categoria o specie.
   void _confermaEliminazione(BuildContext context, WidgetRef ref, String tipo, int id) {
     showDialog(
       context: context,
@@ -196,7 +200,7 @@ class _GestioneCategorieSpecieViewState extends ConsumerState<GestioneCategorieS
   }
 }
 
-/// Widget che mostra la lista delle Categorie.
+// Widget che mostra la lista delle Categorie.
 class _CategorieListView extends ConsumerWidget {
   final Function(Categoria) onEdit;
   final Function(int) onDelete;
@@ -235,7 +239,7 @@ class _CategorieListView extends ConsumerWidget {
   }
 }
 
-/// Widget che mostra la lista delle Specie, raggruppate per categoria.
+// Widget che mostra la lista delle Specie, raggruppate per categoria.
 class _SpecieListView extends ConsumerWidget {
   final Function(Specie) onEdit;
   final Function(int) onDelete;

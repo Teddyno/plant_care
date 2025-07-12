@@ -6,7 +6,7 @@ class PromemoriaRepository {
   final dbHelper = DatabaseHelper.instance;
 
 
-  /// logica per calcolare e restituire i promemoria imminenti.
+  // logica per calcolare e restituire i promemoria imminenti.
   Future<List<Promemoria>> getPromemoriaImminenti() async {
     final List<Promemoria> promemoriaFinali = [];
 

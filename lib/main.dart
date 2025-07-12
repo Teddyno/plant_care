@@ -29,7 +29,7 @@ void main() async {
   );
 }
 
-/// Widget principale dell'applicazione PlantCare.
+// Widget principale dell'applicazione PlantCare.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
       title: 'PlantCare',
       theme: appTheme,
       home: const MainView(),
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false, // Disabilita il banner di debug
     );
   }
 }

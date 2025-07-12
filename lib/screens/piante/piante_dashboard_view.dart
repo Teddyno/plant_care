@@ -8,7 +8,7 @@ import '../../providers/promemoria_provider.dart';
 import '../../providers/specie_provider.dart';
 import 'piante_detail_view.dart';
 
-/// Schermata dashboard "Consumer" reattivo ai dati globali.
+// Schermata dashboard "Consumer" reattivo ai dati globali.
 class PianteDashboardView extends ConsumerWidget {
   const PianteDashboardView({super.key});
 
@@ -46,7 +46,7 @@ class PianteDashboardView extends ConsumerWidget {
     );
   }
 
-  /// Costruisce la sezione "Ultime piante aggiunte"
+  // Costruisce la sezione "Ultime piante aggiunte"
   Widget _buildPianteRecenti(BuildContext context, List<Pianta> pianteRecenti, AsyncValue<List<Specie>> specieAsyncValue) {
     return Container(
       decoration: BoxDecoration(
@@ -103,7 +103,7 @@ class PianteDashboardView extends ConsumerWidget {
     );
   }
 
-  /// Costruisce la sezione "Promemoria attività di cura"
+  // Costruisce la sezione "Promemoria attività di cura"
   Widget _buildPromemoria(BuildContext context, WidgetRef ref, PromemoriaState promemoriaState) {
     final promemoria = promemoriaState.promemoria;
     return Container(
@@ -182,8 +182,9 @@ class PianteDashboardView extends ConsumerWidget {
     );
   }
 
-  // Metodi helper
+  // --- METODI DI LOGICA ---
   
+  // Restituisce la specie corrispondente all'ID, o null se non trovata.
   Specie? _getSpecieById(int idSpecie, List<Specie> tutteLeSpecie) {
     try {
       return tutteLeSpecie.firstWhere((specie) => specie.id == idSpecie);
@@ -192,6 +193,7 @@ class PianteDashboardView extends ConsumerWidget {
     }
   }
 
+  // Restituisce una stringa formattata della data in formato "dd/mm/yyyy".
   String _formattaData(DateTime data) {
     final oggi = DateTime.now();
     final differenza = oggi.difference(data).inDays;

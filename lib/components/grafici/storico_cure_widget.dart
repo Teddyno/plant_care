@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../providers/analisi_provider.dart';
 
-/// Un widget che mostra un grafico delle attività di cura annuali,
+// Un widget che mostra un grafico delle attività di cura annuali,
 class StoricoCure extends ConsumerWidget {
   const StoricoCure({super.key});
 

@@ -8,7 +8,7 @@ import '../../providers/attivita_cura_provider.dart';
 import '../../providers/categorie_provider.dart';
 import '../../providers/specie_provider.dart';
 
-/// Schermata di analisi
+// Schermata di analisi
 class AnalisiView extends ConsumerWidget {
   const AnalisiView({super.key});
 
@@ -39,7 +39,7 @@ class AnalisiView extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 1. Numero totale di piante
+                // Numero totale di piante
                 Card(
                   elevation: 4,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -59,7 +59,7 @@ class AnalisiView extends ConsumerWidget {
                 ),
                 const SizedBox(height: 32),
 
-                // 2. Distribuzione per tipologia/categoria
+                // Distribuzione per tipologia/categoria
                 Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),

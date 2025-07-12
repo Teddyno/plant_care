@@ -5,7 +5,7 @@ import 'piante_provider.dart';
 import 'categorie_provider.dart';
 import 'specie_provider.dart';
 
-/// Provider per il grafico a torta della distribuzione delle piante per categoria.
+// Provider per il grafico a torta della distribuzione delle piante per categoria.
 final distribuzioneCategorieProvider = Provider<Map<String, int>>((ref) {
   final pianteState = ref.watch(pianteProvider);
   final categorieState = ref.watch(tutteLeCategorieProvider);
@@ -31,10 +31,10 @@ final distribuzioneCategorieProvider = Provider<Map<String, int>>((ref) {
 });
 
 
-/// Questo provider deriva il suo stato direttamente da `attivitaCuraProvider`.
-/// In questo modo, ogni volta che una nuova attività viene aggiunta (e quindi
-/// lo stato di `attivitaCuraProvider` cambia), questo provider si ricalcola
-/// automaticamente, garantendo che il grafico sia SEMPRE aggiornato.
+// Questo provider deriva il suo stato direttamente da `attivitaCuraProvider`.
+// In questo modo, ogni volta che una nuova attività viene aggiunta (e quindi
+// lo stato di `attivitaCuraProvider` cambia), questo provider si ricalcola
+// automaticamente, garantendo che il grafico sia SEMPRE aggiornato.
 final conteggioAttivitaGiornalieroProvider = Provider<Map<DateTime, int>>((ref) {
   // "Ascolta" lo stato delle attività di cura
   final tutteLeAttivita = ref.watch(attivitaCuraProvider).tutteLeAttivita;

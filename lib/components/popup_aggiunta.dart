@@ -4,7 +4,7 @@ import '../models/PiantaModel.dart';
 import '../providers/piante_provider.dart';
 import 'PiantaForm.dart';
 
-/// Popup che ospita il form per aggiungere una pianta.
+// Popup che ospita il form per aggiungere una pianta.
 class PopupAggiunta extends ConsumerWidget { 
   const PopupAggiunta({super.key});
 

@@ -6,10 +6,10 @@ import '../analisi/analisi_view.dart';
 import '../categorie_specie/gestione_categorie_specie_view.dart';
 import '../../components/popup_aggiunta.dart';
 
-/// Provider per gestire lo stato dell'indice selezionato nella BottomNavBar.
+// Provider per gestire lo stato dell'indice selezionato nella BottomNavBar.
 final mainViewProvider = StateProvider<int>((ref) => 0);
 
-/// Schermata principale dell'applicazione che gestisce la navigazione.
+// Schermata principale dell'applicazione che gestisce la navigazione.
 class MainView extends ConsumerWidget {
   const MainView({super.key});
 

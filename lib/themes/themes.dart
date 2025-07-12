@@ -9,7 +9,7 @@
 
 import 'package:flutter/material.dart';
 
-/// Tema principale dell'applicazione PlantCare.
+// Tema principale dell'applicazione PlantCare.
 final ThemeData appTheme = ThemeData(
 
   // Font principale dell'applicazione

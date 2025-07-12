@@ -13,7 +13,7 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
   static Database? _database;
   
-  /// Inizializza il database factory appropriato per la piattaforma
+  // Inizializza il database factory appropriato per la piattaforma
   static Future<void> initializeDatabaseFactory() async {
     try {
       // Verifica se siamo su una piattaforma desktop
@@ -47,7 +47,7 @@ class DatabaseHelper {
   Future<Database> get database async => _database ??= await _initDB();
 
   Future<Database> _initDB() async {
-    // Assicurati che il database factory sia inizializzato
+    // ci si assicura che il database factory sia inizializzato
     await initializeDatabaseFactory();
     
     String path;
@@ -126,8 +126,8 @@ class DatabaseHelper {
     await _inizializzaDatiDefault(db);
   }
 
-  /// Inizializza il database con categorie e specie di default.
-  /// Questo metodo viene chiamato solo se il database è vuoto.
+  // Inizializza il database con categorie e specie di default.
+  // Questo metodo viene chiamato solo se il database è vuoto.
   Future<void> _inizializzaDatiDefault(Database db) async {
     try {
       // Inserisce categoria di default
@@ -152,13 +152,13 @@ class DatabaseHelper {
   // OPERAZIONI CRUD PER PIANTA
   // ========================================
 
-  /// Inserisce una nuova pianta nel database.
+  // Inserisce una nuova pianta nel database.
   Future<int> addPianta(Pianta pianta) async {
     final db = await database;
     return await db.insert('piante', pianta.toMap());
   }
 
-  /// Recupera una singola pianta tramite il suo ID.
+  // Recupera una singola pianta tramite il suo ID.
   Future<Pianta?> getPianta(int id) async {
     final db = await database;
     final maps = await db.query(
@@ -173,14 +173,14 @@ class DatabaseHelper {
     return null;
   }
 
-  /// Recupera tutte le piante dal database.
+  // Recupera tutte le piante dal database.
   Future<List<Pianta>> getAllPiante() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('piante');
     return List.generate(maps.length, (i) => Pianta.fromMap(maps[i]));
   }
 
-  /// Recupera le piante più recenti ordinate per data di acquisto.
+  // Recupera le piante più recenti ordinate per data di acquisto.
   Future<List<Pianta>> getPianteRecenti({int limit = 5}) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -191,7 +191,7 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) => Pianta.fromMap(maps[i]));
   }
 
-  /// Aggiorna una pianta esistente.
+  // Aggiorna una pianta esistente.
   Future<int> updatePianta(Pianta pianta) async {
     final db = await database;
     return await db.update(
@@ -202,7 +202,7 @@ class DatabaseHelper {
     );
   }
 
-  /// Elimina una pianta tramite il suo ID.
+  // Elimina una pianta tramite il suo ID.
   Future<int> deletePianta(int id) async {
     final db = await database;
     return await db.delete(
@@ -216,13 +216,13 @@ class DatabaseHelper {
   // OPERAZIONI CRUD PER CATEGORIA
   // ========================================
 
-  /// Inserisce una nuova categoria nel database.
+  // Inserisce una nuova categoria nel database.
   Future<int> addCategoria(Categoria categoria) async {
     final db = await database;
     return await db.insert('categorie', categoria.toMap());
   }
 
-  /// Recupera una singola categoria tramite il suo ID.
+  // Recupera una singola categoria tramite il suo ID.
   Future<Categoria?> getCategoria(int id) async {
     final db = await database;
     final maps = await db.query(
@@ -236,14 +236,14 @@ class DatabaseHelper {
     return null;
   }
 
-  /// Recupera tutte le categorie dal database.
+  // Recupera tutte le categorie dal database.
   Future<List<Categoria>> getAllCategorie() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('categorie');
     return List.generate(maps.length, (i) => Categoria.fromMap(maps[i]));
   }
 
-  /// Aggiorna una categoria esistente.
+  // Aggiorna una categoria esistente.
   Future<int> updateCategoria(Categoria categoria) async {
     final db = await database;
     return await db.update(
@@ -254,9 +254,9 @@ class DatabaseHelper {
     );
   }
 
-  /// Elimina una categoria tramite il suo ID.
-  /// Grazie a ON DELETE CASCADE, verranno eliminate anche tutte le specie
-  /// e le piante associate a questa categoria.
+  // Elimina una categoria tramite il suo ID.
+  // Grazie a ON DELETE CASCADE, verranno eliminate anche tutte le specie
+  // e le piante associate a questa categoria.
   Future<int> deleteCategoria(int id) async {
     final db = await database;
     return await db.delete(
@@ -270,13 +270,13 @@ class DatabaseHelper {
   // OPERAZIONI CRUD PER SPECIE
   // ========================================
 
-  /// Inserisce una nuova specie nel database.
+  // Inserisce una nuova specie nel database.
   Future<int> addSpecie(Specie specie) async {
     final db = await database;
     return await db.insert('specie', specie.toMap());
   }
 
-  /// Recupera una singola specie tramite il suo ID.
+  // Recupera una singola specie tramite il suo ID.
   Future<Specie?> getSpecie(int id) async {
     final db = await database;
     final maps = await db.query(
@@ -290,15 +290,15 @@ class DatabaseHelper {
     return null;
   }
 
-  /// Recupera tutte le specie dal database.
+  // Recupera tutte le specie dal database.
   Future<List<Specie>> getAllSpecie() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('specie');
     return List.generate(maps.length, (i) => Specie.fromMap(maps[i]));
   }
 
-  /// Recupera tutte le specie appartenenti a una determinata categoria.
-  /// Molto utile per i filtri nell'interfaccia utente.
+  // Recupera tutte le specie appartenenti a una determinata categoria.
+  // Molto utile per i filtri nell'interfaccia utente.
   Future<List<Specie>> getSpecieByCategoria(int idCategoria) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -309,7 +309,7 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) => Specie.fromMap(maps[i]));
   }
 
-  /// Aggiorna una specie esistente.
+  // Aggiorna una specie esistente.
   Future<int> updateSpecie(Specie specie) async {
     final db = await database;
     return await db.update(
@@ -320,9 +320,9 @@ class DatabaseHelper {
     );
   }
 
-  /// Elimina una specie tramite il suo ID.
-  /// Grazie a ON DELETE CASCADE, verranno eliminate anche tutte le piante
-  /// associate a questa specie.
+  // Elimina una specie tramite il suo ID.
+  // Grazie a ON DELETE CASCADE, verranno eliminate anche tutte le piante
+  // associate a questa specie.
   Future<int> deleteSpecie(int id) async {
     final db = await database;
     return await db.delete(
@@ -336,13 +336,13 @@ class DatabaseHelper {
   // OPERAZIONI CRUD PER ATTIVITA CURA
   // ========================================
 
-  /// Inserisce una nuova attività di cura nel database.
+  // Inserisce una nuova attività di cura nel database.
   Future<int> addAttivitaCura(AttivitaCura attivita) async {
     final db = await database;
     return await db.insert('attivitaCura', attivita.toMap());
   }
 
-  /// Recupera una singola attività di cura tramite il suo ID.
+  // Recupera una singola attività di cura tramite il suo ID.
   Future<AttivitaCura?> getAttivitaCura(int id) async {
     final db = await database;
     final maps = await db.query(
@@ -356,14 +356,14 @@ class DatabaseHelper {
     return null;
   }
 
-  /// Recupera tutte le attività di cura dal database.
+  // Recupera tutte le attività di cura dal database.
   Future<List<AttivitaCura>> getAllAttivitaCura() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('attivitaCura');
     return List.generate(maps.length, (i) => AttivitaCura.fromMap(maps[i]));
   }
 
-  /// Recupera tutte le attività di cura per una specifica pianta.
+  // Recupera tutte le attività di cura per una specifica pianta.
   Future<List<AttivitaCura>> getAttivitaCuraByPianta(int idPianta) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -375,7 +375,7 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) => AttivitaCura.fromMap(maps[i]));
   }
 
-  /// Aggiorna un'attività di cura esistente.
+  // Aggiorna un'attività di cura esistente.
   Future<int> updateAttivitaCura(AttivitaCura attivita) async {
     final db = await database;
     return await db.update(
@@ -386,7 +386,7 @@ class DatabaseHelper {
     );
   }
 
-  /// Elimina un'attività di cura tramite il suo ID.
+  // Elimina un'attività di cura tramite il suo ID.
   Future<int> deleteAttivitaCura(int id) async {
     final db = await database;
     return await db.delete(
@@ -396,8 +396,8 @@ class DatabaseHelper {
     );
   }
 
-  /// Recupera l'ultima attività di un determinato tipo per una pianta.
-  /// Utile per calcolare le prossime scadenze.
+  // Recupera l'ultima attività di un determinato tipo per una pianta.
+  // Utile per calcolare le prossime scadenze.
   Future<DateTime?> getUltimaAttivita(int idPianta, String tipoAttivita) async {
     final db = await database;
     final maps = await db.query(
@@ -413,7 +413,7 @@ class DatabaseHelper {
     return null;
   }
 
-  /// Recupera tutte le attività di cura per un determinato tipo.
+  // Recupera tutte le attività di cura per un determinato tipo.
   Future<List<AttivitaCura>> getAttivitaCuraByTipo(String tipoAttivita) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -429,14 +429,14 @@ class DatabaseHelper {
   // METODI UTILITY
   // ========================================
 
-  /// Chiude la connessione al database.
-  /// Utile per liberare risorse quando l'app viene chiusa.
+  // Chiude la connessione al database.
+  // Utile per liberare risorse quando l'app viene chiusa.
   Future<void> close() async {
     final db = await database;
     await db.close();
   }
 
-  /// Elimina il database e lo ricrea.
+  // Elimina il database e lo ricrea.
   Future<void> resetDatabase() async {
     final db = await database;
     await db.close();
@@ -444,12 +444,12 @@ class DatabaseHelper {
     await _initDB();
   }
 
-  /// Verifica se il database è vuoto e lo inizializza con dati di default se necessario.
-  /// 
-  /// Questo metodo controlla se esistono categorie nel database. Se non ce ne sono,
-  /// aggiunge automaticamente una categoria e una specie di default per permettere
-  /// agli utenti di iniziare subito a usare l'app.
-  /// 
+  // Verifica se il database è vuoto e lo inizializza con dati di default se necessario.
+  // 
+  // Questo metodo controlla se esistono categorie nel database. Se non ce ne sono,
+  // aggiunge automaticamente una categoria e una specie di default per permettere
+  // agli utenti di iniziare subito a usare l'app.
+  // 
   Future<void> inizializzaSeVuoto() async {
     try {
       final db = await database;

@@ -35,7 +35,7 @@ class AttivitaCuraRepository {
     await _dbHelper.deleteAttivitaCura(id);
   }
 
-  /// Ottiene le attività raggruppate per mese negli ultimi 12 mesi
+  // Ottiene le attività raggruppate per mese negli ultimi 12 mesi
   Future<List<double>> getAttivitaMensili() async {
     final attivita = await getTutteLeAttivita();
     final now = DateTime.now();
