@@ -7,8 +7,6 @@ import 'package:intl/intl.dart';
 
 import '../models/PiantaModel.dart';
 import '../models/SpecieModel.dart';
-import '../models/CategoriaModel.dart';
-import '../providers/piante_provider.dart';
 import '../providers/categorie_provider.dart';
 import '../providers/specie_provider.dart';
 

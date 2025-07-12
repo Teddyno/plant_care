@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/piante_provider.dart';
-import '../../models/PiantaModel.dart';
 import 'piante_detail_view.dart';
 
 // Schermata che mostra la lista completa di tutte le piante.
