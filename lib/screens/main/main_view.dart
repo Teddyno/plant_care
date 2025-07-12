@@ -1,61 +1,48 @@
-/*
- * MAIN VIEW - SCHERMATA PRINCIPALE DELL'APPLICAZIONE
- */
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../piante/piante_dashboard_view.dart';
 import '../piante/piante_list_view.dart';
 import '../analisi/analisi_view.dart';
+import '../categorie_specie/gestione_categorie_specie_view.dart';
 import '../../components/popup_aggiunta.dart';
 
+/// Provider per gestire lo stato dell'indice selezionato nella BottomNavBar.
+final mainViewProvider = StateProvider<int>((ref) => 0);
+
 /// Schermata principale dell'applicazione che gestisce la navigazione.
-/// è un ConsumerStatefulWidget per interagire con i provider.
-class MainView extends ConsumerStatefulWidget { 
+/// Ora è un ConsumerWidget per una gestione dello stato più pulita.
+class MainView extends ConsumerWidget {
   const MainView({super.key});
 
-  @override
-  ConsumerState<MainView> createState() => _MainViewState();
-}
-
-/// Stato interno della schermata principale.
-class _MainViewState extends ConsumerState<MainView> {
-  int _selectedIndex = 0;
-  late List<Widget> _pages;
-
-  @override
-  void initState() {
-    super.initState();
-    _pages = [
-      const PianteDashboardView(),
-      const PianteListView(),
-      const AnalisiView(),
-    ];
-  }
-
-  void _onTabTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+  // Lista delle pagine navigabili
+  static const List<Widget> _pages = [
+    PianteDashboardView(),
+    PianteListView(),
+    AnalisiView(),
+    GestioneCategorieSpecieView()
+  ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // "Ascolta" il provider per ottenere e aggiornare l'indice corrente
+    final selectedIndex = ref.watch(mainViewProvider);
+
     return Scaffold(
-      appBar: _selectedIndex == 2
+      appBar: selectedIndex == 2
           ? AppBar(
         title: const Text('Analisi'),
       )
           : null,
 
       body: IndexedStack(
-        index: _selectedIndex,
+        index: selectedIndex,
         children: _pages,
       ),
 
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onTabTapped,
+        currentIndex: selectedIndex,
+        // Aggiorna lo stato del provider quando un'icona viene toccata
+        onTap: (index) => ref.read(mainViewProvider.notifier).state = index,
         selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
         items: const [
@@ -71,10 +58,15 @@ class _MainViewState extends ConsumerState<MainView> {
             icon: Icon(Icons.analytics),
             label: 'Analisi',
           ),
+          // 3. Aggiunta la nuova voce per la gestione
+          BottomNavigationBarItem(
+            icon: Icon(Icons.tune),
+            label: 'Gestione',
+          ),
         ],
       ),
 
-      floatingActionButton: _selectedIndex == 0
+      floatingActionButton: selectedIndex == 0
           ? FloatingActionButton(
         onPressed: () {
           showModalBottomSheet<bool>(
