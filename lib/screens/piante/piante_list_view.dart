@@ -1,63 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/PiantaModel.dart';
 import '../../providers/piante_provider.dart';
+import '../../providers/categorie_provider.dart';
+import '../../providers/specie_provider.dart';
 import 'piante_detail_view.dart';
 
-// Schermata che mostra la lista completa di tutte le piante.
-// Questo widget "ascolta" i cambiamenti dal pianteProvider e si
-// aggiorna automaticamente.
+// Provider per mantenere lo stato del testo di ricerca.
+final pianteSearchQueryProvider = StateProvider<String>((ref) => '');
+
+/// Schermata che mostra la lista completa di tutte le piante, con funzionalità di ricerca.
 class PianteListView extends ConsumerWidget {
   const PianteListView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Usiamo ref.watch per "osservare" lo stato del nostro provider.
-    // Ogni volta che lo stato in PianteNotifier cambia, questo widget si ricostruisce.
+    // "Ascolta" i provider necessari per la vista.
     final pianteState = ref.watch(pianteProvider);
+    final searchQuery = ref.watch(pianteSearchQueryProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Le mie piante'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              // Chiamiamo l'azione di ricarica sul notifier.
-              ref.read(pianteProvider.notifier).caricaPiante();
-            },
-            tooltip: 'Aggiorna lista',
-          )
-        ],
-      ),
-      body: _buildBody(context, ref, pianteState),
-    );
-  }
+    // Provider per le categorie e le specie, necessari per il filtraggio
+    final categorieAsync = ref.watch(tutteLeCategorieProvider);
+    final specieAsync = ref.watch(tutteLeSpecieProvider);
 
-  // Costruisce il corpo della schermata in base allo stato attuale.
-  Widget _buildBody(BuildContext context, WidgetRef ref, PianteState state) {
-    // Se sta caricando, mostra un indicatore di progresso
-    if (state.isLoading && state.piante.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    // Costruisce la mappa delle specie e delle categorie per una ricerca efficiente
+    final specieMap = { for (var s in specieAsync.asData?.value ?? []) s.id : s };
+    final categorieMap = { for (var c in categorieAsync.asData?.value ?? []) c.id : c };
 
-    // Se la lista è vuota, mostra un messaggio 
-    if (state.piante.isEmpty) {
-      return Center(
+    // Filtra la lista delle piante in base alla query di ricerca
+    final pianteFiltrate = pianteState.piante.where((pianta) {
+      if (searchQuery.isEmpty) {
+        return true; // Mostra tutte le piante se la ricerca è vuota
+      }
+
+      final query = searchQuery.toLowerCase();
+      final nomePianta = pianta.nome.toLowerCase();
+      final specie = specieMap[pianta.idSpecie];
+      final nomeSpecie = specie?.nome.toLowerCase() ?? '';
+      final categoria = specie != null ? categorieMap[specie.idCategoria] : null;
+      final nomeCategoria = categoria?.nome.toLowerCase() ?? '';
+
+      return nomePianta.contains(query) ||
+          nomeSpecie.contains(query) ||
+          nomeCategoria.contains(query);
+    }).toList();
+
+    // [CORREZIONE] La logica per costruire il corpo della UI è ora direttamente nel build.
+    Widget body;
+    if (pianteState.isLoading && pianteFiltrate.isEmpty) {
+      body = const Center(child: CircularProgressIndicator());
+    } else if (pianteFiltrate.isEmpty) {
+      body = Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.park_outlined, size: 80, color: Colors.grey),
+              const Icon(Icons.search_off, size: 80, color: Colors.grey),
               const SizedBox(height: 16),
               Text(
-                'Nessuna pianta nella tua collezione',
+                'Nessuna pianta trovata',
                 style: Theme.of(context).textTheme.headlineSmall,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                'Tocca il pulsante "+" nella home per aggiungerne una!',
+                'Prova a modificare i termini della ricerca o aggiungi una nuova pianta.',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
@@ -65,52 +73,84 @@ class PianteListView extends ConsumerWidget {
           ),
         ),
       );
+    } else {
+      body = RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(pianteProvider);
+          ref.invalidate(tutteLeCategorieProvider);
+          ref.invalidate(tutteLeSpecieProvider);
+        },
+        child: ListView.builder(
+          itemCount: pianteFiltrate.length,
+          itemBuilder: (context, index) {
+            final pianta = pianteFiltrate[index];
+            return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: ListTile(
+                contentPadding: const EdgeInsets.all(12),
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: pianta.foto != null
+                      ? Image.memory(
+                    pianta.foto!,
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
+                  )
+                      : Image.asset(
+                    'assets/icon.png',
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
+                    errorBuilder: (ctx, err, stack) => const Icon(Icons.local_florist, size: 40, color: Colors.grey),
+                  ),
+                ),
+                title: Text(pianta.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text('Acquistata il ${_formattaData(pianta.dataAcquisto)}'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      // La chiamata ora è nello scope corretto.
+                      builder: (context) => PianteDetailView(pianta: pianta),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      );
     }
 
-    // Se ci sono dati, mostra la lista
-    return RefreshIndicator(
-      onRefresh: () => ref.read(pianteProvider.notifier).caricaPiante(),
-      child: ListView.builder(
-        itemCount: state.piante.length,
-        itemBuilder: (context, index) {
-          final pianta = state.piante[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            elevation: 2,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(12),
-              leading: ClipRRect(
-                borderRadius: BorderRadius.circular(8.0),
-                child: pianta.foto != null
-                    ? Image.memory(
-                  pianta.foto!,
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                )
-                    : Image.asset(
-                  'assets/icon.png',
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (ctx, err, stack) => const Icon(Icons.local_florist, size: 40, color: Colors.grey),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Le mie piante'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60.0),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Cerca per nome, specie, categoria...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: BorderSide.none,
                 ),
+                filled: true,
+                fillColor: Colors.grey[200],
               ),
-              title: Text(pianta.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('Acquistata il ${_formattaData(pianta.dataAcquisto)}'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => PianteDetailView(pianta: pianta),
-                  ),
-                );
+              onChanged: (value) {
+                ref.read(pianteSearchQueryProvider.notifier).state = value;
               },
             ),
-          );
-        },
+          ),
+        ),
       ),
+      body: body,
     );
   }
 
