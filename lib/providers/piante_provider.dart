@@ -1,9 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/PiantaModel.dart';
 import '../models/repository/PianteRepository.dart';
+// [MODIFICA] Questi import non sono più necessari qui
+// import 'attivita_cura_provider.dart';
+// import 'promemoria_provider.dart';
 
-// Aggiungiamo la lista delle piante recenti allo stato.
+/// Definisce lo stato per le piante, che include la lista
+/// di tutte le piante, una lista delle piante più recenti e un flag di caricamento.
 class PianteState {
   final List<Pianta> piante;
   final List<Pianta> pianteRecenti;
@@ -28,49 +31,64 @@ class PianteState {
   }
 }
 
-// Il Notifier calcola e imposta entrambe le liste.
+/// Il Notifier che gestisce la logica per caricare, aggiungere,
+/// modificare ed eliminare le piante.
 class PianteNotifier extends StateNotifier<PianteState> {
-  final PianteRepository _pianteRepository = PianteRepository();
+  final PianteRepository _repository = PianteRepository();
+  // [MODIFICA] Il riferimento a Ref non è più necessario qui,
+  // perché la logica di invalidazione è stata rimossa.
+  // final Ref _ref;
 
+  // [MODIFICA] Il costruttore non ha più bisogno di 'ref'.
   PianteNotifier() : super(PianteState()) {
     caricaPiante();
   }
 
+  /// Carica tutte le piante e le piante recenti dal database.
   Future<void> caricaPiante() async {
     state = state.copyWith(isLoading: true);
 
-    final tutteLePiante = await _pianteRepository.getTutteLePiante();
+    final results = await Future.wait([
+      _repository.getTutteLePiante(),
+      _repository.getPianteRecenti(),
+    ]);
 
-    // Calcoliamo qui le piante recenti
-    final pianteOrdinate = List<Pianta>.from(tutteLePiante)
-      ..sort((a, b) => b.dataAcquisto.compareTo(a.dataAcquisto));
-    final recenti = pianteOrdinate.take(5).toList();
+    final tutteLePiante = results[0];
+    final pianteRecenti = results[1];
 
-    // Aggiorniamo lo stato con entrambe le liste
     state = state.copyWith(
-      piante: tutteLePiante,
-      pianteRecenti: recenti,
-      isLoading: false,
+        piante: tutteLePiante,
+        pianteRecenti: pianteRecenti,
+        isLoading: false
     );
   }
 
+  /// Aggiunge una nuova pianta e ricarica la lista per aggiornare la UI.
   Future<void> aggiungiPianta(Pianta pianta) async {
-    await _pianteRepository.aggiungiPianta(pianta);
+    await _repository.aggiungiPianta(pianta);
     await caricaPiante();
   }
 
+  /// Aggiorna una pianta esistente e ricarica la lista.
   Future<void> aggiornaPianta(Pianta pianta) async {
-    await _pianteRepository.aggiornaPianta(pianta);
+    await _repository.aggiornaPianta(pianta);
     await caricaPiante();
   }
 
+  /// Elimina una pianta e forza l'aggiornamento degli altri provider.
   Future<void> eliminaPianta(int id) async {
-    await _pianteRepository.eliminaPianta(id);
+    await _repository.eliminaPianta(id);
+
+    // [SOLUZIONE] Forza il ricaricamento di tutti i dati per mantenere la coerenza.
+    // La chiamata a `caricaPiante` aggiorna lo stato di questo provider.
+    // Gli altri provider che "ascoltano" `pianteProvider` (come promemoriaProvider)
+    // si aggiorneranno automaticamente. Le righe `_ref.invalidate` sono state rimosse.
     await caricaPiante();
   }
 }
 
-
+/// Il provider globale che espone il `PianteNotifier` al resto dell'app.
+// [MODIFICA] Il provider non passa più il 'ref' al notifier.
 final pianteProvider = StateNotifierProvider<PianteNotifier, PianteState>((ref) {
   return PianteNotifier();
 });

@@ -18,31 +18,37 @@ class AttivitaCuraState {
   }
 }
 
-/// Il Notifier che gestisce la logica per caricare e aggiungere attività di cura.
+/// Il Notifier che gestisce la logica per caricare e modificare le attività di cura.
 class AttivitaCuraNotifier extends StateNotifier<AttivitaCuraState> {
+  // Assumo che tu abbia un AttivitaCuraRepository. Se non lo hai, puoi usare direttamente il DatabaseHelper.
   final AttivitaCuraRepository _repository = AttivitaCuraRepository.instance;
 
   AttivitaCuraNotifier() : super(AttivitaCuraState()) {
     caricaAttivita();
   }
 
-  /// Carica tutte le attività dal database all'avvio.
+  /// Carica tutte le attività dal database.
   Future<void> caricaAttivita() async {
     state = state.copyWith(isLoading: true);
     final attivita = await _repository.getTutteLeAttivita();
     state = state.copyWith(tutteLeAttivita: attivita, isLoading: false);
   }
 
-  /// Aggiunge una nuova attività di cura.
-  /// Questo è il metodo chiamato dall'esterno per aggiornare lo stato.
+  /// Aggiunge una nuova attività di cura e ricarica la lista.
   Future<void> aggiungiAttivita(AttivitaCura nuovaAttivita) async {
-    // Salva la nuova attività nel database.
     await _repository.aggiungiAttivita(nuovaAttivita);
+    await caricaAttivita();
+  }
 
-    // [SOLUZIONE] Ricarica tutte le attività dal database.
-    // Questo approccio è robusto e garantisce che lo stato sia sempre
-    // sincronizzato dopo un'aggiunta, risolvendo l'errore 'void' e
-    // assicurando l'aggiornamento automatico della UI.
+  /// [NUOVO] Aggiorna un'attività di cura esistente e ricarica la lista.
+  Future<void> aggiornaAttivita(AttivitaCura attivita) async {
+    await _repository.aggiornaAttivita(attivita);
+    await caricaAttivita();
+  }
+
+  /// [NUOVO] Elimina un'attività di cura e ricarica la lista.
+  Future<void> eliminaAttivita(int id) async {
+    await _repository.eliminaAttivita(id);
     await caricaAttivita();
   }
 }
