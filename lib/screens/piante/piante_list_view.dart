@@ -45,7 +45,7 @@ class PianteListView extends ConsumerWidget {
           nomeCategoria.contains(query);
     }).toList();
 
-    // [CORREZIONE] La logica per costruire il corpo della UI è ora direttamente nel build.
+    // Logica per costruire il corpo della UI è ora direttamente nel build.
     Widget body;
     if (pianteState.isLoading && pianteFiltrate.isEmpty) {
       body = const Center(child: CircularProgressIndicator());
@@ -113,7 +113,6 @@ class PianteListView extends ConsumerWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      // La chiamata ora è nello scope corretto.
                       builder: (context) => PianteDetailView(pianta: pianta),
                     ),
                   );
