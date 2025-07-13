@@ -44,7 +44,7 @@ class PromemoriaNotifier extends StateNotifier<PromemoriaState> {
     calcolaPromemoria();
   }
 
-  // [SOLUZIONE] Metodo reso asincrono per restituire un Future,
+  // Metodo reso asincrono per restituire un Future,
   // come richiesto dalla UI (es. RefreshIndicator).
   Future<void> calcolaPromemoria() async {
     // Se una delle dipendenze sta ancora caricando, non fare nulla.

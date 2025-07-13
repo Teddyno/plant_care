@@ -9,7 +9,7 @@ import '../../providers/attivita_cura_provider.dart';
 import '../../providers/specie_provider.dart';
 
 // Schermata che mostra i dettagli di una pianta specifica.
-// Ora è un ConsumerWidget per una gestione dello stato più pulita e reattiva.
+// è un ConsumerWidget per una gestione dello stato più pulita e reattiva.
 class PianteDetailView extends ConsumerWidget { 
 
   final Pianta pianta;

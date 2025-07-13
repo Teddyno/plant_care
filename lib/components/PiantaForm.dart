@@ -327,7 +327,6 @@ class _PiantaFormState extends ConsumerState<PiantaForm> {
         final specieIniziale = specieList.firstWhere((s) => s.id == pianta.idSpecie);
         _categoriaSelezionataId = specieIniziale.idCategoria;
       } catch (e) {
-        // La specie potrebbe non essere presente, gestisci il caso
       }
     }
   }
